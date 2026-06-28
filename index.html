@@ -1,0 +1,3137 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADA Turbo — Pixel Office</title>
+<meta name="description" content="ADA Creative Co. pixel office visualizer — 26 ajanın gerçek zamanlı ofis simülasyonu">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ================================================================
+   THEME & VARIABLES
+   ================================================================ */
+:root {
+    --bg: #08090f;
+    --panel: #0e1018;
+    --panel-border: #1a1d2e;
+    --surface: #12141f;
+    --surface-hover: #1a1d2e;
+    --text: #c8cad0;
+    --text-dim: #6b7084;
+    --text-bright: #ecedf0;
+    --accent: #6c5ce7;
+
+    --c-strategy: #a78bfa;
+    --c-creative: #f472b6;
+    --c-marketing: #34d399;
+    --c-ops: #fbbf24;
+    --c-tech: #60a5fa;
+
+    --c-strategy-bg: rgba(167,139,250,0.06);
+    --c-creative-bg: rgba(244,114,182,0.06);
+    --c-marketing-bg: rgba(52,211,153,0.06);
+    --c-ops-bg: rgba(251,191,36,0.06);
+    --c-tech-bg: rgba(96,165,250,0.06);
+
+    /* Sprite dimensions — 1/4 of 192×228 strip frames */
+    --sprite-w: 48px;
+    --sprite-h: 57px;
+    --sheet-w: 192px; /* 4 frames × 48 */
+    --sheet-h: 57px;
+}
+
+/* ================================================================
+   RESET & BASE
+   ================================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* ================================================================
+   LAYOUT — 3-column grid
+   ================================================================ */
+#app {
+    display: grid;
+    grid-template-columns: 280px 1fr 300px;
+    height: 100vh;
+    position: relative;
+    background: #08090f;
+    overflow: hidden;
+}
+
+/* ================================================================
+   RETRO PIXEL-ART SCROLLBAR
+   ================================================================ */
+::-webkit-scrollbar { width: 14px; height: 14px; }
+::-webkit-scrollbar-track { background: #0c0e12; border-left: 4px solid #484d5c; }
+::-webkit-scrollbar-thumb { 
+    background: #484d5c; 
+    border: 3px solid #0c0e12; 
+    box-shadow: inset 2px 2px 0 rgba(255,255,255,0.15), inset -2px -2px 0 rgba(0,0,0,0.3);
+}
+::-webkit-scrollbar-thumb:hover { background: #60667a; }
+
+/* ================================================================
+   RETRO SPACE CONSOLE STYLES (PLATES & RIVETS)
+   ================================================================ */
+.panel-plate {
+    position: relative;
+}
+.panel-plate::before, .panel-plate::after {
+    content: '+';
+    position: absolute;
+    font-family: monospace;
+    font-size: 11px;
+    font-weight: 900;
+    color: #121318;
+    top: 6px;
+    z-index: 5;
+    pointer-events: none;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.1);
+}
+.panel-plate::before { left: 8px; }
+.panel-plate::after { right: 8px; }
+
+/* ================================================================
+   LEFT PANEL (RETRO SPACE CONSOLE CODES)
+   ================================================================ */
+#panel-left {
+    background: #20222b;
+    border-right: 6px solid #484d5c;
+    outline: 3px solid #101114;
+    box-shadow: inset 3px 3px 0 #60667a, inset -3px -3px 0 #121318;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.panel-brand {
+    padding: 16px 20px;
+    border-bottom: 6px solid #484d5c;
+    display: flex; align-items: center; gap: 12px;
+    background: #20222b;
+    box-shadow: inset 0 3px 0 #6e7485;
+}
+.panel-brand-icon {
+    width: 36px; height: 36px;
+    background: #0c0e12;
+    border: 3px solid #484d5c;
+    display: grid; place-items: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px; color: #ffbf24;
+    flex-shrink: 0;
+    box-shadow: inset 2px 2px 0 rgba(0,0,0,0.8);
+    text-shadow: 0 0 4px #ffbf24;
+}
+.panel-brand h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px; font-weight: 700; color: #fff;
+    line-height: 1.2;
+    text-shadow: 0 2px 0 #000, 0 0 6px rgba(255,255,255,0.1);
+}
+.panel-brand p {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px; color: #6e7485; margin-top: 5px;
+    letter-spacing: 0.5px;
+}
+
+/* Search bar design */
+.panel-search {
+    padding: 12px;
+    border-bottom: 6px solid #484d5c;
+    background: #20222b;
+}
+.panel-search input {
+    width: 100%; padding: 10px;
+    background: #0c0e12;
+    border: 3px solid #484d5c;
+    color: #39ff14;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    outline: none;
+    box-shadow: inset 3px 3px 0 rgba(0,0,0,0.8);
+}
+.panel-search input:focus {
+    border-color: #39ff14;
+    box-shadow: inset 3px 3px 0 rgba(0,0,0,0.8), 0 0 8px rgba(57,255,20,0.3);
+}
+.panel-search input::placeholder { color: #244b20; }
+
+/* Department accordion */
+.dept-list { flex: 1; overflow-y: auto; padding: 0; }
+
+.dept-group {
+    border-bottom: none;
+}
+.dept-header {
+    padding: 12px 14px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; user-select: none;
+    transition: filter 0.15s;
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,0.15);
+}
+.dept-header:hover {
+    filter: brightness(1.08);
+}
+.dept-header::after {
+    content: '▼';
+    font-size: 8px;
+    color: currentColor;
+    margin-left: 8px;
+    font-family: 'Press Start 2P', monospace;
+}
+.dept-header.is-collapsed::after {
+    content: '▶';
+}
+.dept-header .dept-dot {
+    width: 8px; height: 8px;
+    border-radius: 0; /* Square pixel dots! */
+    border: 2px solid #000;
+    flex-shrink: 0;
+}
+.dept-header .dept-count {
+    background: rgba(0,0,0,0.15) !important;
+    color: inherit !important;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    padding: 2px 5px;
+    border: 2px solid rgba(0,0,0,0.2) !important;
+    margin-left: auto;
+}
+
+/* Accordion department specific header styles */
+.dept-hdr-strateji { background: #c2b9db !important; color: #1e1b29 !important; border-bottom: 4px solid #96928a; border-top: 4px solid #4a4a4a; }
+.dept-hdr-creative { background: #d9b2c6 !important; color: #291b22 !important; border-bottom: 4px solid #96928a; border-top: 4px solid #4a4a4a; }
+.dept-hdr-marketing { background: #9fcfbd !important; color: #1b2923 !important; border-bottom: 4px solid #96928a; border-top: 4px solid #4a4a4a; }
+.dept-hdr-ops { background: #dbc99a !important; color: #29251b !important; border-bottom: 4px solid #96928a; border-top: 4px solid #4a4a4a; }
+.dept-hdr-tech { background: #acc1db !important; color: #1b2129 !important; border-bottom: 4px solid #96928a; border-top: 4px solid #4a4a4a; }
+
+.dept-agents {
+    display: flex; flex-direction: column;
+    padding: 10px; gap: 8px;
+    background: #c3beb5; /* matching room wall color */
+    border-left: 4px solid #4a4a4a;
+    border-right: 4px solid #4a4a4a;
+    border-bottom: 4px solid #4a4a4a;
+}
+.agent-btn {
+    padding: 8px 10px 8px 22px;
+    position: relative;
+    background: #ebdcb9;
+    border: 3px solid #8d5635;
+    color: #352013;
+    font-family: monospace;
+    font-size: 11px; font-weight: 700;
+    text-align: left; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: background 0.1s, border-color 0.1s;
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,0.4);
+}
+.agent-btn::before {
+    content: '▶';
+    position: absolute;
+    left: 8px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: #8d5635;
+    opacity: 0;
+    transition: opacity 0.1s;
+}
+.agent-btn:hover {
+    background: #f7edd3;
+    border-color: #5a3c22;
+    color: #352013;
+}
+.agent-btn:hover::before {
+    opacity: 1;
+}
+.agent-btn .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 0; /* Square pixel dots! */
+    border: 1.5px solid #000;
+    background: #9ca3af;
+    flex-shrink: 0;
+}
+.agent-btn.is-working .status-dot {
+    background: #0f241a;
+}
+.agent-btn.is-working {
+    background: #34d399;
+    color: #0f241a;
+    border-color: #059669;
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,0.5);
+    animation: working-btn-glow 1s infinite alternate;
+}
+@keyframes working-btn-glow {
+    from { box-shadow: inset 1px 1px 0 rgba(255,255,255,0.5), 0 0 4px rgba(52,211,153,0.4); }
+    to { box-shadow: inset 1px 1px 0 rgba(255,255,255,0.5), 0 0 12px rgba(52,211,153,0.9); }
+}
+
+/* Panel actions styling - Chunky 3D Push Buttons */
+.panel-actions {
+    padding: 12px;
+    border-top: 6px solid #484d5c;
+    display: flex; gap: 8px;
+    background: #20222b;
+}
+.panel-actions button {
+    flex: 1; padding: 10px 4px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    cursor: pointer; transition: none;
+    border: 3px solid #000;
+    position: relative;
+}
+.panel-actions button:first-child {
+    background: #5b21b6;
+    color: #fff;
+    box-shadow: inset 2px 2px 0 rgba(255,255,255,0.25), 0 4px 0 #000;
+}
+.panel-actions button:first-child:hover {
+    background: #6d28d9;
+}
+.panel-actions button:first-child:active {
+    top: 4px;
+    box-shadow: inset 2px 2px 0 rgba(255,255,255,0.1);
+}
+.panel-actions button:last-child {
+    background: #b91c1c;
+    color: #fff;
+    box-shadow: inset 2px 2px 0 rgba(255,255,255,0.25), 0 4px 0 #000;
+}
+.panel-actions button:last-child:hover {
+    background: #dc2626;
+}
+.panel-actions button:last-child:active {
+    top: 4px;
+    box-shadow: inset 2px 2px 0 rgba(0,0,0,0.2);
+}
+
+/* ================================================================
+   CENTER — OFFICE VIEWPORT (TRANSPARENT BACKGROUND)
+   ================================================================ */
+#viewport {
+    display: flex; flex-direction: column;
+    background: transparent; overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+/* Status bar retro design */
+#status-bar {
+    height: 38px; flex-shrink: 0;
+    background: #20222b;
+    border-bottom: 6px solid #484d5c;
+    display: flex; align-items: center;
+    padding: 0 16px; gap: 18px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: #fff;
+    position: relative;
+    box-shadow: inset 0 3px 0 #6e7485;
+}
+.conn-indicator {
+    display: flex; align-items: center; gap: 6px;
+}
+.conn-dot {
+    width: 8px; height: 8px; border-radius: 0; /* Square pixel dots! */
+    border: 2px solid #000;
+    background: #39ff14;
+    box-shadow: 0 0 6px #39ff14;
+}
+.conn-dot.disconnected {
+    background: #ef4444;
+    box-shadow: 0 0 6px #ef4444;
+}
+#status-bar .sep {
+    width: 4px; height: 14px; background: #121318;
+}
+#active-badge {
+    background: #0c0e12; border: 2px solid #484d5c;
+    color: #ffbf24;
+    padding: 4px 8px;
+    font-size: 7px;
+    text-shadow: 0 0 4px rgba(255, 191, 36, 0.4);
+}
+#clock { 
+    margin-left: auto; color: #6e7485; 
+    font-size: 7px; font-variant-numeric: tabular-nums; 
+}
+
+/* Office container (centers and scrolls the map) */
+#office-container {
+    flex: 1; display: flex;
+    justify-content: center; align-items: flex-start;
+    overflow-y: auto; overflow-x: hidden; position: relative;
+    padding: 20px 0;
+}
+
+/* ================================================================
+   OFFICE MAP — fixed 900×1400 canvas
+   ================================================================ */
+#office-map {
+    width: 900px; height: 970px;
+    position: relative;
+    background: #0a0d17;
+    border-radius: 12px;
+    overflow: hidden;
+    transform-origin: top center;
+    box-shadow: 0 0 60px rgba(0,0,0,.5);
+    flex-shrink: 0;
+}
+
+/* Subtle floor grid */
+#office-map::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none; z-index: 1;
+}
+
+/* Stars layer */
+#stars-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.star {
+    position: absolute;
+    background: #fff; border-radius: 50%;
+    animation: twinkle var(--dur) ease-in-out infinite alternate;
+    opacity: 0;
+}
+@keyframes twinkle { from { opacity: .1; } to { opacity: var(--max-o, .6); } }
+
+/* ================================================================
+   BUILDING ARCHITECTURE (SLABS, WALLS, ROOMS, CORRIDOR, STAIRS)
+   ================================================================ */
+.slab {
+    position: absolute;
+    left: 0; width: 900px; height: 10px;
+    background: #96928a; /* SLABC */
+    z-index: 4;
+}
+.outer-wall-left {
+    position: absolute;
+    left: 0; top: 0; width: 10px; height: 970px;
+    background: #cfcac0; /* sh(WALLC, 0.9) */
+    z-index: 4;
+}
+.outer-wall-right {
+    position: absolute;
+    right: 0; top: 0; width: 10px; height: 970px;
+    background: #cfcac0;
+    z-index: 4;
+}
+.sep-wall {
+    position: absolute;
+    left: 710px; width: 10px; height: 970px;
+    background: #b0aba0; /* sh(WALLC, 0.85) */
+    z-index: 4;
+}
+.corridor {
+    position: absolute;
+    left: 720px; top: 0; width: 170px; height: 970px;
+    background: #c4c6cd;
+    z-index: 1;
+}
+.corridor::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px);
+    background-size: 100% 16px;
+    pointer-events: none;
+}
+.stairs {
+    position: absolute;
+    left: 730px;
+    width: 80px; height: 150px;
+    pointer-events: none;
+    z-index: 2;
+}
+.step {
+    position: absolute;
+    width: 24px; height: 8px;
+    background: #9fa1aa; /* step surface */
+    border-bottom: 2px solid #6b6d75; /* step shadow */
+    box-shadow: 0 2px 2px rgba(0,0,0,0.2);
+}
+.room {
+    position: absolute;
+    left: 10px; width: 700px; height: 150px;
+    z-index: 2;
+}
+.room-wall {
+    position: absolute;
+    top: 0; left: 0; width: 700px; height: 50px;
+    background: #c3beb5; /* WALLC */
+    border-bottom: 4px solid #8e8a82;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,0.4);
+    z-index: 2;
+}
+.room-floor {
+    position: absolute;
+    top: 50px; left: 0; width: 700px; height: 100px;
+    z-index: 1;
+}
+.room-floor::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+        linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px);
+    background-size: 16px 16px;
+    pointer-events: none;
+}
+.room-strategy .room-floor  { background: #c2b9db; }
+.room-creative .room-floor  { background: #d9b2c6; }
+.room-meeting .room-floor   { background: #b4b4b7; }
+.room-marketing .room-floor { background: #9fcfbd; }
+.room-ops .room-floor       { background: #dbc99a; }
+.room-tech .room-floor      { background: #acc1db; }
+
+.door {
+    position: absolute;
+    left: 710px; width: 10px; height: 32px;
+    background: var(--d-color);
+    border: 2px solid var(--d-border-color);
+    box-shadow: inset 1px 0 0 rgba(255,255,255,0.2);
+    z-index: 3;
+}
+.door::after {
+    content: ''; position: absolute;
+    right: 2px; top: 50%; transform: translateY(-50%);
+    width: 2px; height: 2px;
+    background: #f0dc78; /* gold handle */
+    border-radius: 50%;
+}
+
+.zone-label {
+    position: absolute;
+    top: 58px; left: 12px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px; letter-spacing: .5px;
+    opacity: .75;
+    z-index: 3;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Windows */
+.window {
+    position: absolute;
+    top: 12px;
+    width: 28px; height: 20px;
+    background: #8dc3eb;
+    border: 2px solid #4a4a4a;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+}
+.window::before {
+    content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: white;
+}
+.window::after {
+    content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: white;
+}
+
+/* Picture frames */
+.zone-frame {
+    position: absolute;
+    top: 14px;
+    width: 16px; height: 16px;
+    border: 2px solid #4a4a4a;
+    background: #8fa0c0;
+    box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+}
+
+/* Whiteboards */
+.whiteboard {
+    position: absolute;
+    top: 8px;
+    width: 48px; height: 28px;
+    background: #fcfcfc;
+    border: 2px solid #4a4a4a;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.whiteboard::before {
+    content: ''; position: absolute; left: 4px; right: 4px; top: 4px; height: 2px; background: #3b82f6;
+}
+.whiteboard::after {
+    content: ''; position: absolute; left: 4px; right: 4px; top: 10px; height: 2px; background: #10b981;
+}
+
+/* Potted plant in corners */
+.corner-plant {
+    position: absolute;
+    bottom: 4px;
+    width: 16px; height: 20px;
+    z-index: 3;
+}
+.corner-plant.bottom-left { left: 4px; }
+.corner-plant.bottom-right { right: 4px; }
+
+/* Wall siren/alarm lamp */
+.wall-siren {
+    position: absolute;
+    right: 48px; top: 6px;
+    width: 8px; height: 10px;
+    background: #ef4444;
+    border: 1.5px solid #4a4a4a;
+    border-radius: 4px 4px 0 0;
+    box-shadow: 0 0 8px rgba(239,68,68,0.5);
+    animation: flash-siren 1s step-end infinite;
+}
+@keyframes flash-siren {
+    50% { background: #fca5a5; box-shadow: 0 0 16px #fca5a5; }
+}
+
+/* Decorative furniture objects inside rooms */
+.furniture {
+    position: absolute;
+    image-rendering: pixelated;
+    z-index: 2;
+}
+
+/* Satranç masası */
+.chessboard-table {
+    width: 36px; height: 20px;
+    background: #8e5a32;
+    border: 2px solid #4a2e1b;
+    border-radius: 1px;
+}
+.mini-chessboard {
+    position: absolute;
+    left: 10px; top: 2px;
+    width: 12px; height: 12px;
+    background-image:
+        linear-gradient(45deg, #fff 25%, transparent 25%),
+        linear-gradient(-45deg, #fff 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #fff 75%),
+        linear-gradient(-45deg, transparent 75%, #fff 75%);
+    background-size: 4px 4px;
+    background-position: 0 0, 0 2px, 2px -2px, -2px 0px;
+    background-color: #4a4a4a;
+    border: 1px solid #222;
+}
+
+/* Resim şövalesi */
+.easel {
+    width: 24px; height: 32px;
+}
+.easel::before { /* Canvas */
+    content: ''; position: absolute;
+    left: 2px; top: 2px; width: 20px; height: 18px;
+    background: #f3f4f6;
+    border: 2px solid #4a4a4a;
+}
+.easel::after { /* Frame/Legs */
+    content: ''; position: absolute;
+    left: 0; top: 0; width: 24px; height: 32px;
+    background:
+        linear-gradient(to right, transparent 10px, #8e5a32 10px, #8e5a32 14px, transparent 14px) bottom/100% 12px no-repeat,
+        linear-gradient(135deg, transparent 2px, #8e5a32 2px, #8e5a32 4px, transparent 4px),
+        linear-gradient(-135deg, transparent 2px, #8e5a32 2px, #8e5a32 4px, transparent 4px);
+    pointer-events: none;
+}
+.easel-paint {
+    position: absolute;
+    left: 6px; top: 6px; width: 6px; height: 6px;
+    background: #ef4444;
+}
+.easel-paint::after {
+    content: ''; position: absolute;
+    left: 6px; top: 4px; width: 4px; height: 4px;
+    background: #3b82f6;
+}
+
+/* Server kabini */
+.server-rack {
+    width: 20px; height: 40px;
+    background: #374151;
+    border: 2px solid #1f2937;
+    border-radius: 1px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+.server-rack::before { /* lights */
+    content: ''; position: absolute;
+    left: 4px; top: 4px; width: 2px; height: 32px;
+    background: repeating-linear-gradient(to bottom, #10b981 0px, #10b981 2px, transparent 2px, transparent 6px);
+}
+.server-rack::after { /* blinking red error light */
+    content: ''; position: absolute;
+    right: 4px; top: 12px; width: 2px; height: 2px;
+    background: #ef4444;
+    animation: server-blink 0.8s step-end infinite;
+}
+@keyframes server-blink {
+    50% { opacity: 0; }
+}
+
+/* Çelik kasa/dolap */
+.safe-locker {
+    width: 24px; height: 32px;
+    background: #4b5563;
+    border: 2px solid #1f2937;
+    border-radius: 1px;
+}
+.safe-locker::before { /* dial handle */
+    content: ''; position: absolute;
+    left: 6px; top: 12px; width: 6px; height: 6px;
+    background: #9ca3af;
+    border-radius: 50%;
+    border: 1.5px solid #111827;
+}
+
+/* Speaker on left wall */
+.wall-speaker {
+    position: absolute;
+    left: 4px; top: 10px;
+    width: 10px; height: 14px;
+    background: #374151;
+    border: 1.5px solid #1f2937;
+}
+.wall-speaker::before {
+    content: ''; position: absolute;
+    left: 2px; top: 2px; width: 4px; height: 4px;
+    background: #111827; border-radius: 50%;
+}
+.wall-speaker::after {
+    content: ''; position: absolute;
+    left: 2px; bottom: 2px; width: 4px; height: 4px;
+    background: #111827; border-radius: 50%;
+}
+
+/* ================================================================
+   MEETING ROOM — center of office
+   ================================================================ */
+.meeting-room {
+    position: absolute;
+    left: 540px; top: 540px; width: 320px; height: 210px;
+    border: 2px dashed rgba(255,255,255,.15);
+    border-radius: 12px;
+    background: #b08257; /* wood color floor background */
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+    z-index: 2;
+    overflow: hidden;
+}
+.meeting-room::before { /* wood floor grid */
+    content: ''; position: absolute; inset: 0;
+    background-image:
+        linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+}
+.meeting-room .zone-label {
+    color: #4a2e1b; opacity: .75;
+    top: 10px; left: 12px;
+}
+.meeting-table {
+    position: absolute;
+    width: 120px; height: 50px;
+    background: #8e5a32; /* wood color */
+    border: 2px solid #5a3c22;
+    border-radius: 25px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+.meeting-table::before { /* sub-layer table top shine */
+    content: ''; position: absolute;
+    inset: 3px;
+    border-radius: 22px;
+    background: #a26c48;
+}
+
+/* ================================================================
+   DESKS — pixel furniture
+   ================================================================ */
+.desk {
+    position: absolute;
+    width: 60px; height: 26px;
+    background: #8d5635; /* brown desk surface */
+    border: 2px solid #5a3c22;
+    border-bottom: 4px solid #422915; /* bottom shadow */
+    border-radius: 1px;
+    image-rendering: pixelated;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Laptop/Monitor on the desk */
+.desk-laptop {
+    position: absolute;
+    left: 10px; top: -12px;
+    width: 20px; height: 14px;
+    background: #222438;
+    border: 1.5px solid #4a4a4a;
+    border-radius: 1px;
+    z-index: 1;
+}
+.desk-laptop::before { /* screen glare */
+    content: ''; position: absolute;
+    left: 2px; top: 2px; width: 13px; height: 8px;
+    background: #3b82f6;
+    opacity: 0.8;
+}
+.desk-laptop::after { /* keyboard base */
+    content: ''; position: absolute;
+    left: -2px; bottom: -2px; width: 24px; height: 2.5px;
+    background: #4b5563;
+    border-radius: 0.5px;
+}
+
+/* Active desk — screen glows */
+.desk.desk-active .desk-laptop::before {
+    background: #60a5fa;
+    box-shadow: 0 0 10px rgba(96,165,250,0.8);
+}
+
+/* Papers stack */
+.desk-papers {
+    position: absolute;
+    left: 34px; top: 4px;
+    width: 8px; height: 4px;
+    background: #f3f4f6;
+    border: 1px solid #b9bbc0;
+    box-shadow: 0 1px 0 #9ca3af;
+    z-index: 1;
+}
+
+/* Small plant in pot */
+.desk-plant {
+    position: absolute;
+    right: 4px; top: 2px;
+    width: 8px; height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    border: 1px solid #047857;
+    z-index: 1;
+}
+.desk-plant::before { /* pot */
+    content: ''; position: absolute;
+    left: 2px; bottom: -2px; width: 4px; height: 3px;
+    background: #b45309;
+}
+
+/* Custom desk item */
+.desk-item {
+    position: absolute;
+    left: 28px; top: -8px;
+    width: 12px; height: 12px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2;
+}
+
+/* ================================================================
+   AGENT SPRITES — CSS sprite sheet animation
+   ================================================================ */
+#entities-layer { position: absolute; inset: 0; z-index: 5; }
+
+.agent {
+    position: absolute;
+    width: var(--sprite-w);
+    display: flex; flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10;
+    /* Movement transition — set dynamically */
+    transition: none;
+}
+
+.sprite {
+    width: var(--sprite-w);
+    height: var(--sprite-h);
+    background-size: var(--sheet-w) var(--sheet-h);
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    -ms-interpolation-mode: nearest-neighbor;
+}
+
+/* Idle animation — 920ms total (260+260+140+260) */
+.sprite.anim-idle {
+    background-image: var(--idle-strip);
+    animation: sprite-frames 920ms steps(4) infinite;
+}
+
+/* Walk animation — 520ms total (130×4) */
+.sprite.anim-walk {
+    background-image: var(--walk-strip);
+    animation: sprite-frames 520ms steps(4) infinite;
+}
+
+@keyframes sprite-frames {
+    from { background-position: 0 0; }
+    to { background-position: calc(var(--sheet-w) * -1) 0; }
+}
+
+/* Direction flip */
+.agent.face-left .sprite { transform: scaleX(-1); }
+
+/* Agent name label */
+.agent-name {
+    margin-top: 2px;
+    font-size: 8px; font-weight: 600;
+    color: rgba(255,255,255,.45);
+    white-space: nowrap;
+    pointer-events: none;
+    text-shadow: 0 1px 3px rgba(0,0,0,.8);
+    transition: color .2s, opacity .2s;
+}
+.agent:hover .agent-name { color: rgba(255,255,255,.85); }
+.agent:hover { z-index: 100; }
+
+/* ================================================================
+   WORKING STATE EFFECTS
+   ================================================================ */
+/* Glow ring under agent */
+.agent-glow {
+    position: absolute;
+    bottom: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 36px; height: 10px;
+    border-radius: 50%;
+    background: rgba(108,92,231,.3);
+    filter: blur(4px);
+    opacity: 0;
+    transition: opacity .4s;
+    pointer-events: none;
+}
+.agent.is-working .agent-glow {
+    opacity: 1;
+    animation: glow-pulse 1.8s ease-in-out infinite alternate;
+}
+@keyframes glow-pulse {
+    from { opacity: .3; transform: translateX(-50%) scale(.8); }
+    to { opacity: .8; transform: translateX(-50%) scale(1.2); }
+}
+
+/* Work status label */
+.work-label {
+    position: absolute;
+    bottom: calc(var(--sprite-h) + 8px);
+    left: 50%; transform: translateX(-50%);
+    background: rgba(8,10,20,.92);
+    border: 1px solid rgba(108,92,231,.25);
+    border-radius: 5px;
+    padding: 5px 8px;
+    font-size: 9px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .3s;
+    box-shadow: 0 4px 12px rgba(0,0,0,.5);
+    z-index: 200;
+}
+.agent.is-working .work-label { opacity: 1; }
+
+.work-label-cmd {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: var(--accent);
+    margin-bottom: 2px;
+}
+.work-label-task {
+    color: var(--text-dim);
+    font-size: 8px;
+    max-width: 130px;
+    overflow: hidden; text-overflow: ellipsis;
+}
+.work-label-timer {
+    color: #34d399;
+    font-size: 8px;
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+}
+.work-label-timer::before { content: '● '; font-size: 6px; }
+
+.work-label::after {
+    content: '';
+    position: absolute;
+    top: 100%; left: 50%; transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(8,10,20,.92);
+}
+
+/* ================================================================
+   RIGHT PANEL
+   ================================================================ */
+#panel-right {
+    background: #20222b;
+    border-left: 6px solid #484d5c;
+    outline: 3px solid #101114;
+    box-shadow: inset 3px 3px 0 #60667a, inset -3px -3px 0 #121318;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.rpanel-section {
+    display: flex; flex-direction: column;
+}
+.rpanel-title {
+    padding: 14px 16px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px; font-weight: 700;
+    text-transform: uppercase;
+    color: #fff;
+    background: #20222b;
+    border-bottom: 6px solid #484d5c;
+    display: flex; justify-content: space-between;
+    box-shadow: inset 0 3px 0 #6e7485;
+}
+
+/* CRT screen container & effects */
+.crt-screen {
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 24px rgba(0,0,0,0.95);
+    background: #080a0f !important;
+}
+.crt-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.04));
+    background-size: 100% 3px, 6px 100%;
+    pointer-events: none;
+    z-index: 4;
+    animation: screen-flicker 0.15s infinite;
+}
+.crt-screen::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; height: 120px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.02) 20%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.02) 80%, rgba(255,255,255,0) 100%);
+    pointer-events: none;
+    z-index: 4;
+    animation: roll-scanline 10s linear infinite;
+}
+.crt-glare {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 10%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 70%);
+    pointer-events: none;
+    z-index: 4;
+}
+
+@keyframes screen-flicker {
+    0% { opacity: 0.985; }
+    50% { opacity: 1; }
+    100% { opacity: 0.99; }
+}
+@keyframes roll-scanline {
+    0% { top: -120px; }
+    100% { top: 100%; }
+}
+
+/* Active agents list retro cards */
+#active-list {
+    padding: 12px;
+    max-height: 250px; overflow-y: auto;
+    border-bottom: 6px solid #484d5c;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.active-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    background: #0d1017;
+    border: 3px solid #484d5c;
+    box-shadow: inset 2px 2px 0 rgba(255,255,255,0.02);
+    transition: all 0.15s ease;
+    animation: card-in .25s ease;
+    z-index: 3;
+}
+@keyframes card-in {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+.active-card:hover {
+    background: #11141e;
+    border-color: #3b82f6;
+}
+.active-card-sprite {
+    width: 28px; height: 33px;
+    --sheet-w: 112px;
+    background-size: var(--sheet-w) 33px;
+    image-rendering: pixelated;
+    flex-shrink: 0;
+    animation: sprite-frames 920ms steps(4) infinite;
+}
+.active-card-info { flex: 1; min-width: 0; }
+.active-card-name { font-family: monospace; font-size: 13px; font-weight: bold; color: #fff; text-shadow: 0 0 2px #fff; }
+.active-card-cmd {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px; color: #39ff14; margin-top: 4px;
+    text-shadow: 0 0 2px #39ff14;
+}
+.active-card-time {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px; color: #ffb000;
+    background: #000;
+    border: 2px solid #ffb000;
+    padding: 3px 5px;
+    text-shadow: 0 0 2px #ffb000;
+    box-shadow: 0 0 4px rgba(255, 176, 0, 0.2);
+}
+.empty-state {
+    padding: 24px; text-align: center;
+    color: #484d5c; font-size: 11px;
+    z-index: 3;
+    position: relative;
+}
+
+/* Active card border department colors mapping */
+.active-card-strateji { border-color: var(--c-strategy) !important; }
+.active-card-creative { border-color: var(--c-creative) !important; }
+.active-card-marketing { border-color: var(--c-marketing) !important; }
+.active-card-ops { border-color: var(--c-ops) !important; }
+.active-card-tech { border-color: var(--c-tech) !important; }
+
+/* Activity log retro console style */
+#log-list {
+    flex: 1; overflow-y: auto; padding: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.log-entry {
+    padding: 10px 12px 10px 16px;
+    background: #0c0e14;
+    border: 3px solid #1f2330;
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,0.02);
+    animation: card-in .3s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 3;
+}
+.log-entry:hover {
+    background: #11141e;
+    border-color: #3b4257;
+}
+.log-entry-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 4.5px;
+}
+.log-entry-agent {
+    font-family: monospace;
+    font-size: 12px; font-weight: bold; color: #fff;
+}
+.log-entry-time {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px; color: #ffb000;
+    text-shadow: 0 0 2px #ffb000;
+}
+.log-entry-cmd {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px; color: #39ff14;
+    background: #000; border: 2px solid #39ff14;
+    padding: 3px 6px; display: inline-block;
+    margin-bottom: 4.5px;
+    text-shadow: 0 0 2px #39ff14;
+    box-shadow: 0 0 4px rgba(57, 255, 20, 0.2);
+}
+.log-entry-task {
+    font-family: monospace;
+    font-size: 11px; color: #a0a6b5;
+    line-height: 1.3;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.log-entry-stripe {
+    width: 4px; position: absolute; left: 0; top: 0; bottom: 0;
+}
+
+/* HDD LED styles */
+.hdd-led {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: #3f1010;
+    border: 2px solid #000;
+    margin-left: 8px;
+    align-self: center;
+    transition: background 0.1s, box-shadow 0.1s;
+}
+.hdd-led.flashing {
+    background: #ff3333;
+    box-shadow: 0 0 8px #ff3333;
+}
+
+/* Console window bottom ledge */
+#console-ledge {
+    height: 24px;
+    background: #20222b;
+    border-top: 6px solid #484d5c;
+    box-shadow: inset 0 3px 0 #6e7485;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 3;
+}
+.hazard-stripe {
+    position: absolute;
+    top: -6px; left: 0; right: 0; height: 6px;
+    background: repeating-linear-gradient(
+        -45deg,
+        #ffd700,
+        #ffd700 8px,
+        #000 8px,
+        #000 16px
+    );
+    border-bottom: 2px solid #000;
+}
+.ledge-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: #8c92a5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* RPG select cursor animations */
+@keyframes rpg-cursor {
+    0% { left: 4px; }
+    100% { left: 10px; }
+}
+.agent-btn:hover::before {
+    opacity: 1;
+    animation: rpg-cursor 0.3s infinite alternate step-end;
+}
+
+/* Pulsing LED status animations */
+@keyframes led-pulse {
+    0% { opacity: 0.7; box-shadow: 0 0 2px #39ff14; }
+    100% { opacity: 1; box-shadow: 0 0 6px #39ff14; }
+}
+
+/* ================================================================
+   RETRO CRT TERMINAL MODAL
+   ================================================================ */
+#terminal-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    backdrop-filter: blur(4px);
+}
+.terminal-window {
+    width: 100%;
+    max-width: 800px;
+    height: 80vh;
+    background: #050a05;
+    border: 6px solid #484d5c;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.95);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    outline: 3px solid #101114;
+}
+.terminal-header {
+    height: 38px;
+    background: #20222b;
+    border-bottom: 6px solid #484d5c;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    justify-content: space-between;
+    box-shadow: inset 0 3px 0 #6e7485;
+}
+.terminal-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: #ffbf24;
+    text-shadow: 0 0 4px rgba(255, 191, 36, 0.4);
+}
+.terminal-close-btn {
+    background: #b91c1c;
+    color: #fff;
+    border: 3px solid #000;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    padding: 4px 8px;
+    cursor: pointer;
+    box-shadow: inset 2px 2px 0 rgba(255,255,255,0.25), 0 3px 0 #000;
+    position: relative;
+}
+.terminal-close-btn:active {
+    top: 3px;
+    box-shadow: inset 2px 2px 0 rgba(0,0,0,0.2);
+}
+.terminal-body {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    color: #39ff14;
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    text-shadow: 0 0 4px rgba(57,255,20,0.5);
+    position: relative;
+}
+.terminal-body h1 {
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 16px;
+    border-bottom: 1.5px dashed #39ff14;
+    padding-bottom: 8px;
+    text-shadow: 0 0 6px rgba(255,255,255,0.5);
+}
+.terminal-body h2 {
+    font-size: 15px;
+    color: #ffb000;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 4px rgba(255,176,0,0.5);
+}
+.terminal-body h3 {
+    font-size: 13px;
+    color: #60a5fa;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    text-shadow: 0 0 4px rgba(96,165,250,0.5);
+}
+.terminal-body ul {
+    margin-left: 20px;
+    margin-bottom: 12px;
+}
+.terminal-body li {
+    margin-bottom: 4px;
+}
+.terminal-body p {
+    margin-bottom: 12px;
+}
+.terminal-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 15px;
+    background: #39ff14;
+    animation: cursor-blink 1s step-end infinite;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+@keyframes cursor-blink {
+    50% { opacity: 0; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+    <div id="stars-layer"></div>
+
+<!-- ============ LEFT PANEL ============ -->
+<aside id="panel-left">
+    <div class="panel-brand panel-plate">
+        <div class="panel-brand-icon">▲</div>
+        <div>
+            <h1>ADA Turbo</h1>
+            <p>Pixel Office</p>
+        </div>
+    </div>
+    <div class="panel-search panel-plate">
+        <input type="search" id="search-input" placeholder="Ajan ara…">
+    </div>
+    <div class="dept-list" id="dept-list"></div>
+    <div class="panel-actions panel-plate">
+        <button onclick="triggerAllWorking()">Tümünü Çağır</button>
+        <button onclick="dismissAllWorking()">Serbest Bırak</button>
+    </div>
+    <div class="panel-actions panel-plate" style="border-top: none; padding-top: 0; margin-top: -6px;">
+        <button onclick="openPlaygroundModal()" style="background: #0f172a; color: #38bdf8; border-color: #0284c7; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.05), 0 4px 0 #000;">Playground</button>
+        <button onclick="openSetupModal()" style="background: #0f172a; color: #a855f7; border-color: #7c3aed; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.05), 0 4px 0 #000;">Kurulum</button>
+    </div>
+</aside>
+
+<!-- ============ CENTER: OFFICE ============ -->
+<main id="viewport">
+    <div id="status-bar" class="panel-plate" style="display: flex; align-items: center; justify-content: space-between; height: 26px; padding: 0 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="conn-indicator">
+                <span class="conn-dot" id="conn-dot"></span>
+                <span id="conn-label">Bağlı</span>
+            </div>
+            <span class="sep"></span>
+            <span id="active-badge">Aktif: 0</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span id="clock"></span>
+            <span class="sep"></span>
+            <button onclick="toggleLanguage()" id="lang-btn" style="background: #1e293b; color: #38bdf8; border: 2px solid #475569; padding: 2px 6px; font-family: 'Press Start 2P', monospace; font-size: 7px; cursor: pointer; box-shadow: inset 1px 1px 0 rgba(255,255,255,0.05), 0 2px 0 #000; margin: 0; outline: none; height: 18px; line-height: 12px;">TR</button>
+        </div>
+    </div>
+    <div id="office-container">
+        <div id="office-map">
+
+            <!-- Outer Walls -->
+            <div class="outer-wall-left"></div>
+            <div class="outer-wall-right"></div>
+            <div class="sep-wall"></div>
+
+            <!-- Slabs (Concrete horizontal dividers) -->
+            <div class="slab" style="top: 0;"></div>
+            <div class="slab" style="top: 160px;"></div>
+            <div class="slab" style="top: 320px;"></div>
+            <div class="slab" style="top: 480px;"></div>
+            <div class="slab" style="top: 640px;"></div>
+            <div class="slab" style="top: 800px;"></div>
+            <div class="slab" style="top: 960px;"></div>
+
+            <!-- Corridor Background -->
+            <div class="corridor"></div>
+
+            <!-- Stairs (Zigzag down the corridor) -->
+            <!-- Floor 0 Stairs -->
+            <div class="stairs" style="top: 10px;">
+                <div class="step" style="left: 0px; top: 20px;"></div>
+                <div class="step" style="left: 10px; top: 36px;"></div>
+                <div class="step" style="left: 20px; top: 52px;"></div>
+                <div class="step" style="left: 30px; top: 68px;"></div>
+                <div class="step" style="left: 40px; top: 84px;"></div>
+                <div class="step" style="left: 50px; top: 100px;"></div>
+            </div>
+            <!-- Floor 1 Stairs -->
+            <div class="stairs" style="top: 170px;">
+                <div class="step" style="left: 0px; top: 20px;"></div>
+                <div class="step" style="left: 10px; top: 36px;"></div>
+                <div class="step" style="left: 20px; top: 52px;"></div>
+                <div class="step" style="left: 30px; top: 68px;"></div>
+                <div class="step" style="left: 40px; top: 84px;"></div>
+                <div class="step" style="left: 50px; top: 100px;"></div>
+            </div>
+            <!-- Floor 2 Stairs -->
+            <div class="stairs" style="top: 330px;">
+                <div class="step" style="left: 0px; top: 20px;"></div>
+                <div class="step" style="left: 10px; top: 36px;"></div>
+                <div class="step" style="left: 20px; top: 52px;"></div>
+                <div class="step" style="left: 30px; top: 68px;"></div>
+                <div class="step" style="left: 40px; top: 84px;"></div>
+                <div class="step" style="left: 50px; top: 100px;"></div>
+            </div>
+            <!-- Floor 3 Stairs -->
+            <div class="stairs" style="top: 490px;">
+                <div class="step" style="left: 0px; top: 20px;"></div>
+                <div class="step" style="left: 10px; top: 36px;"></div>
+                <div class="step" style="left: 20px; top: 52px;"></div>
+                <div class="step" style="left: 30px; top: 68px;"></div>
+                <div class="step" style="left: 40px; top: 84px;"></div>
+                <div class="step" style="left: 50px; top: 100px;"></div>
+            </div>
+            <!-- Floor 4 Stairs -->
+            <div class="stairs" style="top: 650px;">
+                <div class="step" style="left: 0px; top: 20px;"></div>
+                <div class="step" style="left: 10px; top: 36px;"></div>
+                <div class="step" style="left: 20px; top: 52px;"></div>
+                <div class="step" style="left: 30px; top: 68px;"></div>
+                <div class="step" style="left: 40px; top: 84px;"></div>
+                <div class="step" style="left: 50px; top: 100px;"></div>
+            </div>
+            <!-- Floor 5 Stairs -->
+            <div class="stairs" style="top: 810px;">
+                <div class="step" style="left: 0px; top: 20px;"></div>
+                <div class="step" style="left: 10px; top: 36px;"></div>
+                <div class="step" style="left: 20px; top: 52px;"></div>
+                <div class="step" style="left: 30px; top: 68px;"></div>
+                <div class="step" style="left: 40px; top: 84px;"></div>
+                <div class="step" style="left: 50px; top: 100px;"></div>
+            </div>
+
+            <!-- Floor 0: Strateji & Marka -->
+            <div class="room room-strategy" style="top: 10px;">
+                <div class="room-wall">
+                    <div class="window" style="left: 16px;"></div>
+                    <div class="window" style="left: 48px;"></div>
+                    <div class="zone-frame" style="left: 320px;"></div>
+                </div>
+                <div class="room-floor">
+                    <div class="furniture chessboard-table" style="left: 580px; top: 15px;">
+                        <div class="mini-chessboard"></div>
+                    </div>
+                </div>
+                <div class="corner-plant bottom-left">
+                    <svg viewBox="0 0 16 20" width="16" height="20" style="image-rendering:pixelated">
+                        <rect x="5" y="14" width="6" height="6" fill="#8e5a32" stroke="#4a2e1b" stroke-width="1"/>
+                        <rect x="7" y="10" width="2" height="4" fill="#2d7f35"/>
+                        <rect x="4" y="6" width="8" height="4" fill="#2d7f35"/>
+                        <rect x="3" y="2" width="10" height="4" fill="#44b74f"/>
+                        <rect x="5" y="14" width="1" height="6" fill="#a06b43"/>
+                        <rect x="10" y="14" width="1" height="6" fill="#6d411f"/>
+                    </svg>
+                </div>
+                <span class="zone-label" id="label-floor-0" style="top: 8px; left: 350px;">Strateji & Marka</span>
+            </div>
+            <div class="door" style="top: 120px; --d-color: var(--c-strategy); --d-border-color: #755ec5;"></div>
+
+            <!-- Floor 1: Yaratıcı Ekip -->
+            <div class="room room-creative" style="top: 170px;">
+                <div class="room-wall">
+                    <div class="window" style="left: 16px;"></div>
+                    <div class="window" style="left: 48px;"></div>
+                    <div class="zone-frame" style="left: 320px; background: #e08ba6;"></div>
+                </div>
+                <div class="room-floor">
+                    <div class="furniture easel" style="left: 50px; top: 10px;">
+                        <div class="easel-paint"></div>
+                    </div>
+                </div>
+                <div class="corner-plant bottom-left">
+                    <svg viewBox="0 0 16 20" width="16" height="20" style="image-rendering:pixelated">
+                        <rect x="5" y="14" width="6" height="6" fill="#8e5a32" stroke="#4a2e1b" stroke-width="1"/>
+                        <rect x="7" y="10" width="2" height="4" fill="#2d7f35"/>
+                        <rect x="4" y="6" width="8" height="4" fill="#2d7f35"/>
+                        <rect x="3" y="2" width="10" height="4" fill="#44b74f"/>
+                        <rect x="5" y="14" width="1" height="6" fill="#a06b43"/>
+                        <rect x="10" y="14" width="1" height="6" fill="#6d411f"/>
+                    </svg>
+                </div>
+                <span class="zone-label" id="label-floor-1" style="top: 8px; left: 350px;">Yaratıcı Ekip</span>
+            </div>
+            <div class="door" style="top: 280px; --d-color: var(--c-creative); --d-border-color: #c75691;"></div>
+
+            <!-- Floor 2: Toplantı Odası -->
+            <div class="room room-meeting" style="top: 330px;">
+                <div class="room-wall">
+                    <div class="window" style="left: 16px;"></div>
+                    <div class="window" style="left: 48px;"></div>
+                    <div class="whiteboard" style="left: 320px;"></div>
+                </div>
+                <div class="room-floor">
+                </div>
+                <div class="corner-plant bottom-left">
+                    <svg viewBox="0 0 16 20" width="16" height="20" style="image-rendering:pixelated">
+                        <rect x="5" y="14" width="6" height="6" fill="#8e5a32" stroke="#4a2e1b" stroke-width="1"/>
+                        <rect x="7" y="10" width="2" height="4" fill="#2d7f35"/>
+                        <rect x="4" y="6" width="8" height="4" fill="#2d7f35"/>
+                        <rect x="3" y="2" width="10" height="4" fill="#44b74f"/>
+                        <rect x="5" y="14" width="1" height="6" fill="#a06b43"/>
+                        <rect x="10" y="14" width="1" height="6" fill="#6d411f"/>
+                    </svg>
+                </div>
+                <span class="zone-label" id="label-floor-2" style="top: 8px; left: 380px; color: #4a2e1b;">Toplantı Odası</span>
+            </div>
+            <div class="door" style="top: 440px; --d-color: #787882; --d-border-color: #54545c;"></div>
+
+            <!-- Floor 3: Pazarlama & Büyüme -->
+            <div class="room room-marketing" style="top: 490px;">
+                <div class="room-wall">
+                    <div class="window" style="left: 16px;"></div>
+                    <div class="window" style="left: 48px;"></div>
+                    <div class="whiteboard" style="left: 320px;"></div>
+                </div>
+                <div class="room-floor">
+                    <div class="wall-speaker" style="left: 4px; top: 10px;"></div>
+                </div>
+                <div class="corner-plant bottom-left">
+                    <svg viewBox="0 0 16 20" width="16" height="20" style="image-rendering:pixelated">
+                        <rect x="5" y="14" width="6" height="6" fill="#8e5a32" stroke="#4a2e1b" stroke-width="1"/>
+                        <rect x="7" y="10" width="2" height="4" fill="#2d7f35"/>
+                        <rect x="4" y="6" width="8" height="4" fill="#2d7f35"/>
+                        <rect x="3" y="2" width="10" height="4" fill="#44b74f"/>
+                        <rect x="5" y="14" width="1" height="6" fill="#a06b43"/>
+                        <rect x="10" y="14" width="1" height="6" fill="#6d411f"/>
+                    </svg>
+                </div>
+                <span class="zone-label" id="label-floor-3" style="top: 8px; left: 380px;">Pazarlama & Büyüme</span>
+            </div>
+            <div class="door" style="top: 600px; --d-color: var(--c-marketing); --d-border-color: #1eb37a;"></div>
+
+            <!-- Floor 4: Müşteri & Operasyon -->
+            <div class="room room-ops" style="top: 650px;">
+                <div class="room-wall">
+                    <div class="window" style="left: 16px;"></div>
+                    <div class="window" style="left: 48px;"></div>
+                    <div class="zone-frame" style="left: 320px;"></div>
+                    <div class="wall-siren" style="right: 30px;"></div>
+                </div>
+                <div class="room-floor">
+                    <div class="wall-speaker" style="left: 4px; top: 10px;"></div>
+                </div>
+                <div class="corner-plant bottom-left">
+                    <svg viewBox="0 0 16 20" width="16" height="20" style="image-rendering:pixelated">
+                        <rect x="5" y="14" width="6" height="6" fill="#8e5a32" stroke="#4a2e1b" stroke-width="1"/>
+                        <rect x="7" y="10" width="2" height="4" fill="#2d7f35"/>
+                        <rect x="4" y="6" width="8" height="4" fill="#2d7f35"/>
+                        <rect x="3" y="2" width="10" height="4" fill="#44b74f"/>
+                        <rect x="5" y="14" width="1" height="6" fill="#a06b43"/>
+                        <rect x="10" y="14" width="1" height="6" fill="#6d411f"/>
+                    </svg>
+                </div>
+                <span class="zone-label" id="label-floor-4" style="top: 8px; left: 350px;">Müşteri & Operasyon</span>
+            </div>
+            <div class="door" style="top: 760px; --d-color: var(--c-ops); --d-border-color: #c79516;"></div>
+
+            <!-- Floor 5: Teknik & Analitik -->
+            <div class="room room-tech" style="top: 810px;">
+                <div class="room-wall">
+                    <div class="window" style="left: 16px;"></div>
+                    <div class="window" style="left: 48px;"></div>
+                    <div class="whiteboard" style="left: 320px;"></div>
+                </div>
+                <div class="room-floor">
+                    <div class="furniture server-rack" style="left: 20px; top: 10px;"></div>
+                    <div class="furniture safe-locker" style="right: 20px; top: 10px;"></div>
+                </div>
+                <div class="corner-plant bottom-left">
+                    <svg viewBox="0 0 16 20" width="16" height="20" style="image-rendering:pixelated">
+                        <rect x="5" y="14" width="6" height="6" fill="#8e5a32" stroke="#4a2e1b" stroke-width="1"/>
+                        <rect x="7" y="10" width="2" height="4" fill="#2d7f35"/>
+                        <rect x="4" y="6" width="8" height="4" fill="#2d7f35"/>
+                        <rect x="3" y="2" width="10" height="4" fill="#44b74f"/>
+                        <rect x="5" y="14" width="1" height="6" fill="#a06b43"/>
+                        <rect x="10" y="14" width="1" height="6" fill="#6d411f"/>
+                    </svg>
+                </div>
+                <span class="zone-label" id="label-floor-5" style="top: 8px; left: 380px;">Teknik & Analitik</span>
+            </div>
+            <div class="door" style="top: 920px; --d-color: var(--c-tech); --d-border-color: #3e84db;"></div>
+
+            <div id="entities-layer" style="position: absolute; inset: 0; z-index: 5;">
+                <!-- Meeting table as sorted entity -->
+                <div class="meeting-table" style="left: 290px; top: 410px; z-index: 435;"></div>
+            </div>
+        </div>
+    </div>
+    <div id="console-ledge">
+        <div class="hazard-stripe"></div>
+        <div class="ledge-label">[ ATTENTION: observation portal shield - pressurized vacuum glass ]</div>
+    </div>
+</main>
+
+<!-- ============ RIGHT PANEL ============ -->
+<aside id="panel-right">
+    <div class="rpanel-section">
+        <div class="rpanel-title panel-plate">
+            <span>Aktif Ajanlar</span>
+            <span id="active-count-r">0</span>
+        </div>
+        <div id="active-list" class="crt-screen">
+            <div class="crt-glare"></div>
+            <div class="empty-state" id="no-active">Çalışan ajan yok</div>
+        </div>
+    </div>
+    <div class="rpanel-section" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+        <div class="rpanel-title panel-plate">
+            <span>Aktivite Günlüğü</span>
+            <span class="hdd-led" id="hdd-led"></span>
+        </div>
+        <div id="log-list" class="crt-screen">
+            <div class="crt-glare"></div>
+            <div class="empty-state" id="no-logs">Henüz aktivite yok</div>
+        </div>
+    </div>
+</aside>
+
+</div>
+
+<script>
+/* ================================================================
+   CONSTANTS
+   ================================================================ */
+const MAP_W = 900, MAP_H = 970;
+const SPRITE_W = 48, SPRITE_H = 57;
+const WALK_SPEED = 55; // px per second
+const WORK_DURATION = 18000; // ms an agent works before returning
+const WANDER_PAUSE_MIN = 2500, WANDER_PAUSE_MAX = 7000;
+const POLL_INTERVAL = 1200;
+
+/* ================================================================
+   AGENT DATA — 26 agents with desk coordinates in single row per floor
+   ================================================================ */
+const AGENTS = [
+    // Strategy & Brand (Floor 0 Y0: 10, Desk Y: 110, Agent Y: 88)
+    { name:"Strateji Direktörü", slug:"strateji-direktoru", dept:"strateji", deskX:180, deskY:88 },
+    { name:"Marka Stratejisti", slug:"marka-stratejisti", dept:"strateji", deskX:410, deskY:88 },
+    // Creative (Floor 1 Y0: 170, Desk Y: 270, Agent Y: 248)
+    { name:"Yaratıcı Direktör", slug:"yaratici-direktor", dept:"creative", deskX:180, deskY:248 },
+    { name:"Copywriter", slug:"copywriter", dept:"creative", deskX:300, deskY:248 },
+    { name:"Art Director", slug:"art-director", dept:"creative", deskX:420, deskY:248 },
+    { name:"Yapımcı", slug:"yapimci", dept:"creative", deskX:540, deskY:248 },
+    // Marketing (Floor 3 Y0: 490, Desk Y: 590, Agent Y: 568 - Single row)
+    { name:"Performans Pazarlama", slug:"performans-pazarlama", dept:"marketing", deskX:80, deskY:568 },
+    { name:"SEO", slug:"seo", dept:"marketing", deskX:150, deskY:568 },
+    { name:"E-posta / CRM", slug:"e-posta-crm", dept:"marketing", deskX:220, deskY:568 },
+    { name:"Growth Hacker", slug:"growth-hacker", dept:"marketing", deskX:290, deskY:568 },
+    { name:"Sosyal Medya", slug:"sosyal-medya", dept:"marketing", deskX:360, deskY:568 },
+    { name:"İçerik Stratejisti", slug:"icerik-stratejisti", dept:"marketing", deskX:430, deskY:568 },
+    { name:"Influencer", slug:"influencer", dept:"marketing", deskX:500, deskY:568 },
+    { name:"Medya Planlama", slug:"medya-planlama", dept:"marketing", deskX:570, deskY:568 },
+    // Operations (Floor 4 Y0: 650, Desk Y: 750, Agent Y: 728 - Single row)
+    { name:"Hesap Yöneticisi", slug:"hesap-yoneticisi", dept:"ops", deskX:120, deskY:728 },
+    { name:"Proje Yöneticisi", slug:"proje-yoneticisi", dept:"ops", deskX:210, deskY:728 },
+    { name:"Müşteri Başarısı", slug:"musteri-basarisi", dept:"ops", deskX:300, deskY:728 },
+    { name:"Kriz İletişimi", slug:"kriz-iletisimi", dept:"ops", deskX:390, deskY:728 },
+    { name:"PR", slug:"pr", dept:"ops", deskX:480, deskY:728 },
+    // Tech & Analytics (Floor 5 Y0: 810, Desk Y: 910, Agent Y: 888 - Single row)
+    { name:"Analitik", slug:"analitik", dept:"tech", deskX:90, deskY:888 },
+    { name:"CFO", slug:"cfo", dept:"tech", deskX:170, deskY:888 },
+    { name:"CEO / Ürün", slug:"ceo-urun", dept:"tech", deskX:250, deskY:888 },
+    { name:"CTO", slug:"cto", dept:"tech", deskX:330, deskY:888 },
+    { name:"Kurmay Başkanı", slug:"kurmay-baskani", dept:"tech", deskX:410, deskY:888 },
+    { name:"İstihbarat", slug:"istihbarat", dept:"tech", deskX:490, deskY:888 },
+    { name:"Müdür", slug:"mudur", dept:"tech", deskX:570, deskY:888 },
+];
+
+const AGENT_COMMANDS = {
+    "strateji-direktoru": { cmd: "/strateji yaratici-brief", task: "Yaratıcı brief hazırlama" },
+    "marka-stratejisti": { cmd: "/marka konumlama", task: "Marka konumlama statement hazırlama" },
+    "yaratici-direktor": { cmd: "/yaratici konsept", task: "3 alternatif kampanya konsepti geliştirme" },
+    "copywriter": { cmd: "/copy tagline", task: "SaaS ürünü için tagline varyasyonları" },
+    "art-director": { cmd: "/art kimlik-sistem", task: "Renk paleti ve tipografi rehberi" },
+    "yapimci": { cmd: "/yapim butce", task: "12 kategorili reklam filmi bütçe planı" },
+    "performans-pazarlama": { cmd: "/performans kampanya-rapor", task: "ROAS ve CPA optimizasyon analizi" },
+    "seo": { cmd: "/seo-altyapisi", task: "Lansman öncesi Core Web Vitals denetimi" },
+    "e-posta-crm": { cmd: "/email welcome", task: "Hoş geldin e-posta otomasyon serisi" },
+    "growth-hacker": { cmd: "/growth", task: "ICE skoru ile A/B test hipotez planı" },
+    "sosyal-medya": { cmd: "/sosyal", task: "LinkedIn ve Instagram içerik planı" },
+    "icerik-stratejisti": { cmd: "/icerik", task: "Cornerstone içerik atomizasyon planı" },
+    "influencer": { cmd: "/influencer", task: "Mikro-influencer vetting ve bütçe planı" },
+    "medya-planlama": { cmd: "/medya", task: "Rezervasyonlu OOH ve TV medya planı" },
+    "hesap-yoneticisi": { cmd: "/hesap brief-al", task: "Müşteriden iş hedefleri ve brief alımı" },
+    "proje-yoneticisi": { cmd: "/proje plan", task: "SMART milestones ve teslimat takvimi" },
+    "musteri-basarisi": { cmd: "/cs saglik", task: "Müşteri NPS ve support ticket sentiment analizi" },
+    "kriz-iletisimi": { cmd: "/kriz holding-statement", task: "Acil durum holding statement hazırlama" },
+    "pr": { cmd: "/pr basin-bulteni", task: "5W prensipli lansman basın bülteni" },
+    "analitik": { cmd: "/analitik aylik-rapor", task: "3-Tier KPI modeli ile performans raporu" },
+    "cfo": { cmd: "/cfo runway", task: "MRR ve burn-rate runway senaryo modeli" },
+    "ceo-urun": { cmd: "/ceo karar", task: "3 senaryolu RICE sıralı ürün roadmap planı" },
+    "cto": { cmd: "/cto teknik-borc", task: "Architecture Decision Record (ADR) hazırlama" },
+    "kurmay-baskani": { cmd: "/cos sync", task: "Beyinler arası çelişki ve OKR sync raporu" },
+    "istihbarat": { cmd: "/intel rakip-monitor", task: "SWOT analizi ve rakip pazar haritalama" },
+    "mudur": { cmd: "/mudur weekly", task: "Alt workflowlar genel incident ve brief analizi" }
+};
+
+/* Department zones for wander bounds */
+const ZONES = {
+    // x: start X, y: start Y, w: width of walk range, h: height of walk range
+    strateji:  { x: 40, y: 70,  w: 630, h: 23 },
+    creative:  { x: 40, y: 230, w: 630, h: 23 },
+    marketing: { x: 40, y: 550, w: 630, h: 23 },
+    ops:       { x: 40, y: 710, w: 630, h: 23 },
+    tech:      { x: 40, y: 870, w: 630, h: 23 },
+};
+
+/* Meeting room seats — positions around the table on Floor 2 (Y0: 330) */
+const MEETING_SEATS = [
+    { x: 270, y: 380 }, { x: 320, y: 380 }, { x: 370, y: 380 }, { x: 420, y: 380 },
+    { x: 270, y: 445 }, { x: 320, y: 445 }, { x: 370, y: 445 }, { x: 420, y: 445 },
+    { x: 220, y: 410 }, { x: 470, y: 410 }
+];
+
+const DEPT_COLORS = {
+    strateji: 'var(--c-strategy)',
+    creative: 'var(--c-creative)',
+    marketing: 'var(--c-marketing)',
+    ops: 'var(--c-ops)',
+    tech: 'var(--c-tech)',
+};
+
+/* ================================================================
+   STATE
+   ================================================================ */
+const state = {};      // agentName → agent state object
+let lastTimestamp = 0;
+let activityLog = [];  // recent activities
+let pollTimer = null;
+
+/* ================================================================
+   BILINGUAL TRANSLATIONS (TR / EN)
+   ================================================================ */
+let currentLang = 'TR';
+
+const TRANSLATIONS = {
+    TR: {
+        brand_title: "ADA Turbo",
+        brand_subtitle: "Pixel Office",
+        search_placeholder: "Ajan ara…",
+        call_all: "Tümünü Çağır",
+        dismiss_all: "Serbest Bırak",
+        playground: "Playground",
+        setup: "Kurulum",
+        connected: "Bağlı",
+        disconnected: "Bağlantı Yok",
+        active: "Aktif",
+        active_agents: "Aktif Ajanlar",
+        activity_log: "Aktivite Günlüğü",
+        no_active_agents: "Çalışan ajan yok",
+        no_activity: "Henüz aktivite yok",
+        terminal_title: "> SYSTEM OUTPUT TERMINAL",
+        playground_title: "> SYSTEM PLAYGROUND — WORKFLOW TESTER",
+        select_command: "[ 1. SELECT COMMAND ]",
+        enter_task: "[ 2. ENTER TASK CONTEXT ]",
+        generate_workflow: "WORKFLOW ÜRET",
+        generating: "ÜRETİLİYOR...",
+        copy: "Kopyala",
+        copied: "Workflow çıktısı panoya kopyalandı!",
+        copied_code: "Kod panoya kopyalandı!",
+        loading: "Yükleniyor...",
+        meeting_room: "Toplantı Odası",
+        setup_title: "> SYSTEM SETUP WIZARD — IDE CONFIGS",
+        setup_desc_antigravity: "Antigravity'de <strong>Manage MCP Servers</strong> raw config dosyasına (`mcp_config.json`) ekleyin:",
+        setup_desc_cursor: "Cursor global veya proje kökünde `.cursor/mcp.json` dosyasına ekleyin:",
+        setup_desc_claudedesktop: "Claude Desktop yapılandırma dosyasına ekleyin:",
+        setup_desc_claudecode: "Claude CLI üzerinde eklemek için terminalinizde çalıştırın:",
+        depts: {
+            strateji: 'Strateji & Marka',
+            creative: 'Yaratıcı Ekip',
+            marketing: 'Pazarlama & Büyüme',
+            ops: 'Müşteri & Operasyon',
+            tech: 'Teknik & Analitik'
+        },
+        agents: {
+            "strateji-direktoru": "Strateji Direktörü",
+            "marka-stratejisti": "Marka Stratejisti",
+            "yaratici-direktor": "Yaratıcı Direktör",
+            "copywriter": "Copywriter",
+            "art-director": "Art Director",
+            "yapimci": "Yapımcı",
+            "performans-pazarlama": "Performans Pazarlama",
+            "seo": "SEO",
+            "e-posta-crm": "E-posta / CRM",
+            "growth-hacker": "Growth Hacker",
+            "sosyal-medya": "Sosyal Medya",
+            "icerik-stratejisti": "İçerik Stratejisti",
+            "influencer": "Influencer",
+            "medya-planlama": "Medya Planlama",
+            "hesap-yoneticisi": "Hesap Yöneticisi",
+            "proje-yoneticisi": "Proje Yöneticisi",
+            "musteri-basarisi": "Müşteri Başarısı",
+            "kriz-iletisimi": "Kriz İletişimi",
+            "pr": "PR",
+            "analitik": "Analitik",
+            "cfo": "CFO",
+            "ceo-urun": "CEO / Ürün",
+            "cto": "CTO",
+            "kurmay-baskani": "Kurmay Başkanı",
+            "istihbarat": "İstihbarat",
+            "mudur": "Müdür"
+        },
+        tasks: {
+            "strateji-direktoru": "Yaratıcı brief hazırlama",
+            "marka-stratejisti": "Marka konumlama statement hazırlama",
+            "yaratici-direktor": "3 alternatif kampanya konsepti geliştirme",
+            "copywriter": "SaaS ürünü için tagline varyasyonları",
+            "art-director": "Renk paleti ve tipografi rehberi",
+            "yapimci": "12 kategorili reklam filmi bütçe planı",
+            "performans-pazarlama": "ROAS ve CPA optimizasyon analizi",
+            "seo": "Lansman öncesi Core Web Vitals denetimi",
+            "e-posta-crm": "Hoş geldin e-posta otomasyon serisi",
+            "growth-hacker": "ICE skoru ile A/B test hipotez planı",
+            "sosyal-medya": "LinkedIn ve Instagram içerik planı",
+            "icerik-stratejisti": "Cornerstone içerik atomizasyon planı",
+            "influencer": "Mikro-influencer vetting ve bütçe planı",
+            "medya-planlama": "Rezervasyonlu OOH ve TV medya planı",
+            "hesap-yoneticisi": "Müşteriden iş hedefleri ve brief alımı",
+            "proje-yoneticisi": "SMART milestones ve teslimat takvimi",
+            "musteri-basarisi": "Müşteri NPS ve support ticket sentiment analizi",
+            "kriz-iletisimi": "Acil durum holding statement hazırlama",
+            "pr": "5W prensipli lansman basın bülteni",
+            "analitik": "3-Tier KPI modeli ile performans raporu",
+            "cfo": "MRR ve burn-rate runway senaryo modeli",
+            "ceo-urun": "3 senaryolu RICE sıralı ürün roadmap planı",
+            "cto": "Architecture Decision Record (ADR) hazırlama",
+            "kurmay-baskani": "Beyinler arası çelişki ve OKR sync raporu",
+            "istihbarat": "SWOT analizi ve rakip pazar haritalama",
+            "mudur": "Alt workflowlar genel incident ve brief analizi"
+        }
+    },
+    EN: {
+        brand_title: "ADA Turbo",
+        brand_subtitle: "Pixel Office",
+        search_placeholder: "Search agent...",
+        call_all: "Call All",
+        dismiss_all: "Dismiss All",
+        playground: "Playground",
+        setup: "Setup",
+        connected: "Connected",
+        disconnected: "No Connection",
+        active: "Active",
+        active_agents: "Active Agents",
+        activity_log: "Activity Log",
+        no_active_agents: "No active agents",
+        no_activity: "No activity yet",
+        terminal_title: "> SYSTEM OUTPUT TERMINAL",
+        playground_title: "> SYSTEM PLAYGROUND — WORKFLOW TESTER",
+        select_command: "[ 1. SELECT COMMAND ]",
+        enter_task: "[ 2. ENTER TASK CONTEXT ]",
+        generate_workflow: "GENERATE WORKFLOW",
+        generating: "GENERATING...",
+        copy: "Copy",
+        copied: "Workflow output copied to clipboard!",
+        copied_code: "Code copied to clipboard!",
+        loading: "Loading...",
+        meeting_room: "Meeting Room",
+        setup_title: "> SYSTEM SETUP WIZARD — IDE CONFIGS",
+        setup_desc_antigravity: "Add to raw config file (`mcp_config.json`) in Antigravity's **Manage MCP Servers**:",
+        setup_desc_cursor: "Add to global `~/.cursor/mcp.json` or project-root `.cursor/mcp.json`:",
+        setup_desc_claudedesktop: "Add to Claude Desktop configuration file:",
+        setup_desc_claudecode: "Run in your terminal to add via Claude CLI:",
+        depts: {
+            strateji: 'Strategy & Brand',
+            creative: 'Creative Team',
+            marketing: 'Marketing & Growth',
+            ops: 'Client & Operations',
+            tech: 'Tech & Analytics'
+        },
+        agents: {
+            "strateji-direktoru": "Strategy Director",
+            "marka-stratejisti": "Brand Strategist",
+            "yaratici-direktor": "Creative Director",
+            "copywriter": "Copywriter",
+            "art-director": "Art Director",
+            "yapimci": "Producer",
+            "performans-pazarlama": "Performance Marketing",
+            "seo": "SEO",
+            "e-posta-crm": "Email / CRM",
+            "growth-hacker": "Growth Hacker",
+            "sosyal-medya": "Social Media",
+            "icerik-stratejisti": "Content Strategist",
+            "influencer": "Influencer",
+            "medya-planlama": "Media Planning",
+            "hesap-yoneticisi": "Account Manager",
+            "proje-yoneticisi": "Project Manager",
+            "musteri-basarisi": "Customer Success",
+            "kriz-iletisimi": "Crisis Communication",
+            "pr": "PR",
+            "analitik": "Analytics",
+            "cfo": "CFO",
+            "ceo-urun": "CEO / Product",
+            "cto": "CTO",
+            "kurmay-baskani": "Chief of Staff",
+            "istihbarat": "Intelligence",
+            "mudur": "Manager"
+        },
+        tasks: {
+            "strateji-direktoru": "Preparing creative brief",
+            "marka-stratejisti": "Preparing brand positioning statement",
+            "yaratici-direktor": "Developing 3 alternative campaign concepts",
+            "copywriter": "Tagline variations for a SaaS product",
+            "art-director": "Color palette and typography guide",
+            "yapimci": "12-category commercial video budget plan",
+            "performans-pazarlama": "ROAS and CPA optimization analysis",
+            "seo": "Pre-launch Core Web Vitals audit",
+            "e-posta-crm": "Welcome email CRM automation flow",
+            "growth-hacker": "A/B test hypothesis plan with ICE score",
+            "sosyal-medya": "LinkedIn and Instagram content plan",
+            "icerik-stratejisti": "Cornerstone content atomization roadmap",
+            "influencer": "Micro-influencer vetting and budget plan",
+            "medya-planlama": "Booked OOH and TV media plan",
+            "hesap-yoneticisi": "Client goals and brief ingestion",
+            "proje-yoneticisi": "SMART milestones and delivery schedule",
+            "musteri-basarisi": "NPS and support ticket sentiment analysis",
+            "kriz-iletisimi": "Emergency holding statement prep",
+            "pr": "5W press release for product launch",
+            "analitik": "Performance report with 3-Tier KPI model",
+            "cfo": "MRR and burn-rate runway scenario model",
+            "ceo-urun": "Product roadmap prioritizing via RICE",
+            "cto": "Preparing Architecture Decision Record (ADR)",
+            "kurmay-baskani": "Inter-agent conflict resolution & OKR sync",
+            "istihbarat": "SWOT analysis and competitor market mapping",
+            "mudur": "General incident and brief analysis of sub-workflows"
+        }
+    }
+};
+
+function updateUILanguage() {
+    const t = TRANSLATIONS[currentLang];
+    
+    // Map Zone Labels
+    if(document.getElementById('label-floor-0')) document.getElementById('label-floor-0').textContent = t.depts.strateji;
+    if(document.getElementById('label-floor-1')) document.getElementById('label-floor-1').textContent = t.depts.creative;
+    if(document.getElementById('label-floor-2')) document.getElementById('label-floor-2').textContent = t.meeting_room;
+    if(document.getElementById('label-floor-3')) document.getElementById('label-floor-3').textContent = t.depts.marketing;
+    if(document.getElementById('label-floor-4')) document.getElementById('label-floor-4').textContent = t.depts.ops;
+    if(document.getElementById('label-floor-5')) document.getElementById('label-floor-5').textContent = t.depts.tech;
+    
+    // Map Agents
+    if (typeof AGENTS !== 'undefined') {
+        AGENTS.forEach(a => {
+            const el = document.getElementById(`agent-${a.slug}`);
+            if (el) {
+                const label = el.querySelector('.agent-name');
+                if (label) {
+                    label.textContent = t.agents[a.slug] || a.name;
+                }
+            }
+        });
+    }
+    
+    // Left panel brand
+    document.querySelector('#panel-left h1').textContent = t.brand_title;
+    document.querySelector('#panel-left p').textContent = t.brand_subtitle;
+    
+    // Left panel search placeholder
+    document.getElementById('search-input').placeholder = t.search_placeholder;
+    
+    // Actions buttons
+    const actButtons = document.querySelectorAll('#panel-left button');
+    if (actButtons.length >= 4) {
+        actButtons[0].textContent = t.call_all;
+        actButtons[1].textContent = t.dismiss_all;
+        actButtons[2].textContent = t.playground;
+        actButtons[3].textContent = t.setup;
+    }
+    
+    // Status Bar
+    document.getElementById('conn-label').textContent = (document.getElementById('conn-dot').classList.contains('disconnected')) ? t.disconnected : t.connected;
+    
+    // Right panel
+    document.querySelector('#panel-right .rpanel-section:nth-child(1) .rpanel-title span:nth-child(1)').textContent = t.active_agents;
+    document.querySelector('#panel-right .rpanel-section:nth-child(2) .rpanel-title span:nth-child(1)').textContent = t.activity_log;
+    
+    if (document.getElementById('no-active')) {
+        document.getElementById('no-active').textContent = t.no_active_agents;
+    }
+    if (document.getElementById('no-logs')) {
+        document.getElementById('no-logs').textContent = t.no_activity;
+    }
+    
+    // Modals header title text and textareas/dropdowns
+    document.querySelector('#terminal-modal .terminal-title').textContent = t.terminal_title;
+    document.querySelector('#playground-modal .terminal-title').textContent = t.playground_title;
+    document.querySelector('#setup-modal .terminal-title').textContent = t.setup_title;
+    
+    // Playground labels and button
+    const pgLabels = document.querySelectorAll('#playground-modal label');
+    if (pgLabels.length >= 1) pgLabels[0].textContent = t.select_command;
+    if (pgLabels.length >= 2) pgLabels[1].textContent = t.enter_task;
+    document.getElementById('btn-run-workflow').textContent = t.generate_workflow;
+    document.getElementById('play-task').placeholder = currentLang === 'TR' ? 
+        'Müşteri/proje detaylarını girin (ör. Meridian Systems FinTech lansmanı)...' : 
+        'Enter client/project details (e.g. Meridian Systems FinTech launch)...';
+        
+    // Setup tab descriptions
+    document.querySelector('#setup-antigravity-content p').innerHTML = t.setup_desc_antigravity;
+    document.querySelector('#setup-cursor-content p').innerHTML = t.setup_desc_cursor;
+    document.querySelector('#setup-claudedesktop-content p').innerHTML = t.setup_desc_claudedesktop;
+    document.querySelector('#setup-claudecode-content p').innerHTML = t.setup_desc_claudecode;
+    
+    // Update language button text
+    document.getElementById('lang-btn').textContent = currentLang;
+    
+    // Rebuild left panel
+    buildLeftPanel();
+    
+    // Re-draw active agents list and logs list
+    updatePanels();
+    renderLog();
+}
+
+function toggleLanguage() {
+    currentLang = currentLang === 'TR' ? 'EN' : 'TR';
+    updateUILanguage();
+}
+
+/* ================================================================
+   INITIALIZATION
+   ================================================================ */
+window.addEventListener('DOMContentLoaded', () => {
+    createStars(60);
+    createDesks();
+    createAgents();
+    updateUILanguage();
+    fitMap();
+    window.addEventListener('resize', fitMap);
+    startAllWandering();
+    updateClock();
+    setInterval(updateClock, 1000);
+    pollMCP();
+    pollTimer = setInterval(pollMCP, POLL_INTERVAL);
+});
+
+/* ================================================================
+   STARS
+   ================================================================ */
+function createStars(count) {
+    const layer = document.getElementById('stars-layer');
+    for (let i = 0; i < count; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        const size = Math.random() < .7 ? 1 : 2;
+        s.style.cssText = `
+            left:${Math.random()*100}%;top:${Math.random()*100}%;
+            width:${size}px;height:${size}px;
+            --dur:${2+Math.random()*4}s;
+            --max-o:${.2+Math.random()*.5};
+            animation-delay:${Math.random()*5}s;
+        `;
+        layer.appendChild(s);
+    }
+}
+
+const DESK_ITEMS = {
+    "strateji-direktoru": `<svg viewBox="0 0 12 12" width="12" height="12"><path d="M2,2 L2,11 M2,2 L10,4 L2,6" stroke="#4a2e1b" stroke-width="1" fill="#785ec5" stroke-linejoin="round"/></svg>`,
+    "marka-stratejisti": `<svg viewBox="0 0 12 12" width="12" height="12"><polygon points="6,1 10,4 6,11 2,4" fill="#5cb8ff" stroke="#2266aa" stroke-width="1"/></svg>`,
+    "yaratici-direktor": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="2" y="3" width="8" height="6" fill="#e2b13c" stroke="#8c661b" stroke-width="1"/><rect x="4" y="2" width="4" height="2" fill="#e2b13c"/></svg>`,
+    "copywriter": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="4" y="4" width="4" height="6" fill="#d4a35c" stroke="#7c5321" stroke-width="1"/><line x1="4" y1="2" x2="5" y2="4" stroke="#ff4444" stroke-width="1"/><line x1="7" y1="1" x2="6" y2="4" stroke="#4444ff" stroke-width="1"/></svg>`,
+    "art-director": `<svg viewBox="0 0 12 12" width="12" height="12"><ellipse cx="6" cy="6" rx="5" ry="4" fill="#edd0be" stroke="#8d6c55" stroke-width="1"/><circle cx="4" cy="5" r="1" fill="#ff3333"/><circle cx="6" cy="4" r="1" fill="#33cc33"/><circle cx="8" cy="6" r="1" fill="#3333ff"/></svg>`,
+    "yapimci": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="2" y="4" width="8" height="6" fill="#222" stroke="#000" stroke-width="1"/><rect x="2" y="2" width="8" height="2" fill="#eee" stroke="#222" stroke-width="1"/><line x1="4" y1="2" x2="6" y2="4" stroke="#222" stroke-width="1"/></svg>`,
+    "performans-pazarlama": `<svg viewBox="0 0 12 12" width="12" height="12"><circle cx="6" cy="6" r="5" fill="white" stroke="#ff3333" stroke-width="2"/><circle cx="6" cy="6" r="2" fill="#ff3333"/></svg>`,
+    "seo": `<svg viewBox="0 0 12 12" width="12" height="12"><circle cx="5" cy="5" r="3" fill="none" stroke="#666" stroke-width="1.5"/><line x1="7.5" y1="7.5" x2="11" y2="11" stroke="#4a2e1b" stroke-width="2"/></svg>`,
+    "e-posta-crm": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="1" y="3" width="10" height="6" fill="white" stroke="#444" stroke-width="1"/><polygon points="1,3 6,6 11,3" fill="none" stroke="#444" stroke-width="1"/></svg>`,
+    "growth-hacker": `<svg viewBox="0 0 12 12" width="12" height="12"><path d="M6,1 L9,5 L9,9 L3,9 L3,5 Z" fill="#ff4444" stroke="#990000" stroke-width="1"/><rect x="4" y="9" width="4" height="2" fill="#ffcc00"/></svg>`,
+    "sosyal-medya": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="2" y="2" width="8" height="6" rx="2" fill="#34d399" stroke="#10b981" stroke-width="1"/><polygon points="4,8 4,11 7,8" fill="#34d399" stroke="#10b981" stroke-width="1"/></svg>`,
+    "icerik-stratejisti": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="3" y="2" width="6" height="8" fill="#ef4444" stroke="#b91c1c" stroke-width="1"/><line x1="5" y1="4" x2="7" y2="4" stroke="white"/><line x1="5" y1="6" x2="7" y2="6" stroke="white"/></svg>`,
+    "influencer": `<svg viewBox="0 0 12 12" width="12" height="12"><polygon points="6,1 8,4 11,4 9,7 10,10 6,8 2,10 3,7 1,4 4,4" fill="#fbbf24" stroke="#d97706" stroke-width="1"/></svg>`,
+    "medya-planlama": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="2" y="3" width="8" height="7" fill="white" stroke="#3b82f6" stroke-width="1"/><rect x="2" y="1" width="8" height="2" fill="#3b82f6"/><line x1="4" y1="5" x2="8" y2="5" stroke="#ccc"/><line x1="4" y1="7" x2="8" y2="7" stroke="#ccc"/></svg>`,
+    "hesap-yoneticisi": `<svg viewBox="0 0 12 12" width="12" height="12"><path d="M2,2 L10,2 L10,6 C10,9 6,11 6,11 C6,11 2,9 2,6 Z" fill="#b45309" stroke="#78350f" stroke-width="1"/></svg>`,
+    "proje-yoneticisi": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="3" y="2" width="6" height="8" fill="#d97706" stroke="#92400e" stroke-width="1"/><rect x="4" y="4" width="4" height="5" fill="white"/><rect x="5" y="1" width="2" height="1.5" fill="#6b7280"/></svg>`,
+    "musteri-basarisi": `<svg viewBox="0 0 12 12" width="12" height="12"><path d="M6,10 L2,6 C1,4 3,1 6,4 C9,1 11,4 10,6 Z" fill="#ec4899" stroke="#be185d" stroke-width="1"/></svg>`,
+    "kriz-iletisimi": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="4" y="6" width="4" height="4" fill="#4b5563"/><ellipse cx="6" cy="4" rx="3" ry="2" fill="#ef4444" stroke="#b91c1c" stroke-width="1"/></svg>`,
+    "pr": `<svg viewBox="0 0 12 12" width="12" height="12"><path d="M2,5 L4,5 L8,2 L8,10 L4,7 L2,7 Z" fill="#4b5563" stroke="#1f2937" stroke-width="1"/><path d="M8,4 C9,5 9,7 8,8" fill="none" stroke="#1f2937" stroke-width="1"/></svg>`,
+    "analitik": `<svg viewBox="0 0 12 12" width="12" height="12"><path d="M2,2 L2,11 L2,2 L10,4 L2,6" stroke="#4a2e1b" stroke-width="1" fill="#facc15"/><path d="M3,5 L5,4 L7,5" fill="none" stroke="#b45309" stroke-width="1"/></svg>`,
+    "cfo": `<svg viewBox="0 0 12 12" width="12" height="12"><circle cx="6" cy="6" r="4.5" fill="#fbbf24" stroke="#d97706" stroke-width="1"/><circle cx="6" cy="6" r="2" fill="#f59e0b" stroke="none"/></svg>`,
+    "ceo-urun": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="3" y="4" width="6" height="6" fill="#ef4444" stroke="#b91c1c" stroke-width="1"/><polygon points="4,1 5,3 6,1 7,3 8,1 8,4 4,4" fill="#fbbf24" stroke="#d97706" stroke-width="0.5"/></svg>`,
+    "cto": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="2" y="2" width="8" height="8" fill="#4b5563" stroke="#1f2937" stroke-width="1"/><circle cx="4" cy="4" r="1" fill="#10b981"/><circle cx="4" cy="7" r="1" fill="#ef4444"/></svg>`,
+    "kurmay-baskani": `<svg viewBox="0 0 12 12" width="12" height="12"><path d="M3,2 L9,2 L8,7 L4,7 Z" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1"/><rect x="5" y="7" width="2" height="3" fill="#3b82f6"/><rect x="4" y="9" width="4" height="1" fill="#1d4ed8"/></svg>`,
+    "istihbarat": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="2" y="3" width="3" height="6" fill="#374151" stroke="#111827" stroke-width="1"/><rect x="7" y="3" width="3" height="6" fill="#374151" stroke="#111827" stroke-width="1"/><rect x="5" y="5" width="2" height="2" fill="#4b5563"/></svg>`,
+    "mudur": `<svg viewBox="0 0 12 12" width="12" height="12"><rect x="3" y="2" width="6" height="8" fill="#10b981" stroke="#047857" stroke-width="1"/><line x1="5" y1="4" x2="7" y2="4" stroke="white"/><line x1="5" y1="6" x2="7" y2="6" stroke="white"/></svg>`
+};
+
+/* ================================================================
+   DESKS
+   ================================================================ */
+function createDesks() {
+    const layer = document.getElementById('entities-layer');
+    AGENTS.forEach(a => {
+        const d = document.createElement('div');
+        d.className = 'desk';
+        d.id = `desk-${a.slug}`;
+        d.style.left = (a.deskX - 6) + 'px';
+        d.style.top  = (a.deskY + 22) + 'px';
+        d.style.zIndex = Math.floor(a.deskY + 22);
+
+        // Add sub-elements: laptop, papers, plant, custom desk item
+        d.innerHTML = `
+            <div class="desk-laptop"></div>
+            <div class="desk-papers"></div>
+            <div class="desk-plant"></div>
+            <div class="desk-item">${DESK_ITEMS[a.slug] || ''}</div>
+        `;
+        layer.appendChild(d);
+    });
+}
+
+/* ================================================================
+   AGENTS
+   ================================================================ */
+function createAgents() {
+    const layer = document.getElementById('entities-layer');
+    AGENTS.forEach(a => {
+        // State init
+        state[a.name] = {
+            slug: a.slug,
+            dept: a.dept,
+            deskX: a.deskX,
+            deskY: a.deskY,
+            curX: a.deskX,
+            curY: a.deskY,
+            phase: 'idle',   // idle | walking | working | to-desk | to-meeting
+            walkTimer: null,
+            workTimer: null,
+            workStartTime: null,
+            command: '',
+            task: '',
+            meetingSeat: null,
+        };
+
+        // DOM
+        const el = document.createElement('div');
+        el.className = 'agent';
+        el.id = `agent-${a.slug}`;
+        el.style.left = a.deskX + 'px';
+        el.style.top  = a.deskY + 'px';
+        el.style.zIndex = Math.floor(a.deskY);
+        el.style.setProperty('--idle-strip', `url('animasyonlar/anim/${a.slug}_idle_strip.png')`);
+        el.style.setProperty('--walk-strip', `url('animasyonlar/anim/${a.slug}_walk_strip.png')`);
+
+        // Glow
+        const glow = document.createElement('div');
+        glow.className = 'agent-glow';
+        el.appendChild(glow);
+
+        // Sprite
+        const sprite = document.createElement('div');
+        sprite.className = 'sprite anim-idle';
+        el.appendChild(sprite);
+
+        // Name
+        const label = document.createElement('div');
+        label.className = 'agent-name';
+        label.textContent = a.name;
+        el.appendChild(label);
+
+        // Work label
+        const wl = document.createElement('div');
+        wl.className = 'work-label';
+        wl.innerHTML = `
+            <div class="work-label-cmd" id="wl-cmd-${a.slug}"></div>
+            <div class="work-label-task" id="wl-task-${a.slug}"></div>
+            <div class="work-label-timer" id="wl-timer-${a.slug}"></div>
+        `;
+        el.appendChild(wl);
+
+        // Click to trigger
+        el.addEventListener('click', () => {
+            if (state[a.name].phase === 'working') {
+                dismissAgent(a.name);
+            } else {
+                const mapped = AGENT_COMMANDS[a.slug] || { cmd: '/test', task: 'Manuel test' };
+                triggerWork(a.name, mapped.cmd, mapped.task);
+            }
+        });
+
+        layer.appendChild(el);
+    });
+
+    // Preload sprites
+    AGENTS.forEach(a => {
+        new Image().src = `animasyonlar/anim/${a.slug}_idle_strip.png`;
+        new Image().src = `animasyonlar/anim/${a.slug}_walk_strip.png`;
+    });
+}
+
+/* ================================================================
+   SPRITE ANIMATION HELPERS
+   ================================================================ */
+function setIdle(agentName) {
+    const s = state[agentName];
+    const el = document.getElementById(`agent-${s.slug}`);
+    const sprite = el.querySelector('.sprite');
+    sprite.className = 'sprite anim-idle';
+}
+function setWalk(agentName) {
+    const s = state[agentName];
+    const el = document.getElementById(`agent-${s.slug}`);
+    const sprite = el.querySelector('.sprite');
+    sprite.className = 'sprite anim-walk';
+}
+
+/* ================================================================
+   MOVEMENT
+   ================================================================ */
+function moveToDirect(agentName, targetX, targetY, callback, isFinal = true) {
+    const s = state[agentName];
+    const el = document.getElementById(`agent-${s.slug}`);
+
+    // Get current position (may be mid-transition)
+    const cs = getComputedStyle(el);
+    const curX = parseFloat(cs.left);
+    const curY = parseFloat(cs.top);
+
+    // Snap to current
+    el.style.transition = 'none';
+    el.style.left = curX + 'px';
+    el.style.top  = curY + 'px';
+    s.curX = curX;
+    s.curY = curY;
+    el.offsetHeight; // force reflow
+
+    // Direction
+    if (targetX < curX) el.classList.add('face-left');
+    else el.classList.remove('face-left');
+
+    // Distance & duration
+    const dx = targetX - curX, dy = targetY - curY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 5) { if (callback) callback(); return; }
+
+    const dur = (dist / WALK_SPEED) * 1000;
+
+    // Walk animation
+    setWalk(agentName);
+
+    // CSS transition
+    el.style.transition = `left ${dur}ms linear, top ${dur}ms linear`;
+    el.style.left = targetX + 'px';
+    el.style.top  = targetY + 'px';
+    el.style.zIndex = Math.floor(targetY); // Set target zIndex for depth sorting
+    s.curX = targetX;
+    s.curY = targetY;
+
+    // Completion
+    clearTimeout(s.walkTimer);
+    s.walkTimer = setTimeout(() => {
+        if (isFinal) {
+            el.classList.remove('face-left');
+            setIdle(agentName);
+        }
+        if (callback) callback();
+    }, dur);
+}
+
+function walkPath(agentName, path, callback) {
+    if (!path || path.length === 0) {
+        if (callback) callback();
+        return;
+    }
+    const nextWaypoint = path[0];
+    const remainingPath = path.slice(1);
+    const isFinal = remainingPath.length === 0;
+    moveToDirect(agentName, nextWaypoint.x, nextWaypoint.y, () => {
+        walkPath(agentName, remainingPath, callback);
+    }, isFinal);
+}
+
+function moveTo(agentName, targetX, targetY, callback) {
+    const s = state[agentName];
+    const el = document.getElementById(`agent-${s.slug}`);
+
+    const cs = getComputedStyle(el);
+    const curX = parseFloat(cs.left);
+    const curY = parseFloat(cs.top);
+
+    const startF = Math.floor(curY / 160);
+    const targetF = Math.floor(targetY / 160);
+
+    if (startF === targetF) {
+        // Same floor -> move directly
+        moveToDirect(agentName, targetX, targetY, callback, true);
+    } else {
+        // Different floors -> route through doors & stairs/corridors
+        const doorX = 710;
+        const path = [];
+        
+        let currentF = startF;
+        let currentX = curX;
+        let currentY = curY;
+
+        // 1. Move to start floor door inside
+        const startDoorY = startF * 160 + 120;
+        if (Math.abs(currentX - doorX) > 15 || Math.abs(currentY - startDoorY) > 15) {
+            path.push({ x: doorX, y: startDoorY });
+            currentX = doorX;
+            currentY = startDoorY;
+        }
+
+        if (startF < targetF) {
+            // Going DOWN
+            while (currentF < targetF) {
+                const nextF = currentF + 1;
+                const nextStairsTopY = nextF * 160 + 30;
+                const nextStairsBottomY = nextF * 160 + 110;
+                const nextDoorY = nextF * 160 + 120;
+
+                // Move from door area to the top of next stairs
+                path.push({ x: 730, y: nextStairsTopY });
+                // Move diagonally down the stairs
+                path.push({ x: 780, y: nextStairsBottomY });
+                // Move to the door of next floor
+                path.push({ x: doorX, y: nextDoorY });
+
+                currentF = nextF;
+            }
+        } else {
+            // Going UP
+            while (currentF > targetF) {
+                const currentStairsBottomY = currentF * 160 + 110;
+                const currentStairsTopY = currentF * 160 + 30;
+                const nextDoorY = (currentF - 1) * 160 + 120;
+
+                // Move from door area to the bottom of current floor's stairs
+                path.push({ x: 780, y: currentStairsBottomY });
+                // Move diagonally up the stairs
+                path.push({ x: 730, y: currentStairsTopY });
+                // Move to the door of upper floor
+                path.push({ x: doorX, y: nextDoorY });
+
+                currentF = currentF - 1;
+            }
+        }
+
+        // 5. Walk to the final target inside the target room
+        path.push({ x: targetX, y: targetY });
+
+        walkPath(agentName, path, callback);
+    }
+}
+
+/* ================================================================
+   RANDOM WANDERING
+   ================================================================ */
+function startWander(agentName) {
+    const s = state[agentName];
+    if (s.phase === 'working' || s.phase === 'to-desk' || s.phase === 'to-meeting') return;
+    s.phase = 'walking';
+
+    const zone = ZONES[s.dept];
+    // Random target within zone
+    const tx = zone.x + Math.random() * zone.w;
+    const ty = zone.y + Math.random() * zone.h;
+
+    moveTo(agentName, tx, ty, () => {
+        s.phase = 'idle';
+        // Schedule next wander
+        const wait = WANDER_PAUSE_MIN + Math.random() * (WANDER_PAUSE_MAX - WANDER_PAUSE_MIN);
+        s.walkTimer = setTimeout(() => startWander(agentName), wait);
+    });
+}
+
+function startAllWandering() {
+    AGENTS.forEach((a, i) => {
+        // Stagger start
+        const delay = 500 + Math.random() * 4000;
+        state[a.name].walkTimer = setTimeout(() => startWander(a.name), delay);
+    });
+}
+
+function stopWander(agentName) {
+    const s = state[agentName];
+    clearTimeout(s.walkTimer);
+    s.walkTimer = null;
+}
+
+/* ================================================================
+   WORK TRIGGER — agent goes to desk or meeting room
+   ================================================================ */
+function triggerWork(agentName, command, task) {
+    const s = state[agentName];
+    if (s.phase === 'working') {
+        // Already working, just update command
+        s.command = command;
+        s.task = task;
+        updateWorkLabel(agentName);
+        return;
+    }
+
+    stopWander(agentName);
+    s.command = command;
+    s.task = task;
+    s.workStartTime = Date.now();
+
+    // Count currently working agents (including this one)
+    const workingCount = Object.values(state).filter(x => x.phase === 'working' || x.phase === 'to-meeting' || x.phase === 'to-desk').length;
+
+    // If 2+ agents working → meeting room, else → desk
+    if (workingCount >= 1) {
+        // At least one other agent working, use meeting room
+        goToMeeting(agentName);
+        // Also move other working agents to meeting room if they're at their desk
+        Object.entries(state).forEach(([name, st]) => {
+            if (name !== agentName && st.phase === 'working' && st.meetingSeat === null) {
+                goToMeeting(name);
+            }
+        });
+    } else {
+        goToDesk(agentName);
+    }
+
+    // Add log entry
+    addLogEntry(agentName, command, task);
+    updatePanels();
+}
+
+function goToDesk(agentName) {
+    const s = state[agentName];
+    s.phase = 'to-desk';
+    s.meetingSeat = null;
+
+    moveTo(agentName, s.deskX, s.deskY, () => {
+        s.phase = 'working';
+        activateWorkingState(agentName);
+    });
+}
+
+function goToMeeting(agentName) {
+    const s = state[agentName];
+    s.phase = 'to-meeting';
+
+    // Find a free meeting seat
+    let seatIdx = MEETING_SEATS.findIndex((seat, i) =>
+        !Object.values(state).some(st => st.meetingSeat === i)
+    );
+    if (seatIdx === -1) seatIdx = Math.floor(Math.random() * MEETING_SEATS.length);
+    s.meetingSeat = seatIdx;
+
+    const seat = MEETING_SEATS[seatIdx];
+    moveTo(agentName, seat.x, seat.y, () => {
+        s.phase = 'working';
+        activateWorkingState(agentName);
+    });
+}
+
+function activateWorkingState(agentName) {
+    const s = state[agentName];
+    const el = document.getElementById(`agent-${s.slug}`);
+    const desk = document.getElementById(`desk-${s.slug}`);
+
+    el.classList.add('is-working');
+    if (s.meetingSeat === null && desk) desk.classList.add('desk-active');
+
+    // Set department glow color
+    const glow = el.querySelector('.agent-glow');
+    const deptColor = DEPT_COLORS[s.dept] || 'var(--accent)';
+    glow.style.backgroundColor = deptColor;
+
+    updateWorkLabel(agentName);
+
+    // Auto-dismiss timer
+    clearTimeout(s.workTimer);
+    s.workTimer = setTimeout(() => dismissAgent(agentName), WORK_DURATION);
+
+    updatePanels();
+}
+
+function updateWorkLabel(agentName) {
+    const s = state[agentName];
+    const cmd = document.getElementById(`wl-cmd-${s.slug}`);
+    const task = document.getElementById(`wl-task-${s.slug}`);
+    if (cmd) cmd.textContent = s.command;
+    if (task) task.textContent = s.task;
+}
+
+/* ================================================================
+   DISMISS AGENT — stop working, resume wandering
+   ================================================================ */
+function dismissAgent(agentName) {
+    const s = state[agentName];
+    const el = document.getElementById(`agent-${s.slug}`);
+    const desk = document.getElementById(`desk-${s.slug}`);
+
+    clearTimeout(s.workTimer);
+    el.classList.remove('is-working');
+    if (desk) desk.classList.remove('desk-active');
+    s.meetingSeat = null;
+    s.phase = 'idle';
+
+    // Check if remaining working agents should go back to their desks
+    const stillWorking = Object.entries(state).filter(([n, st]) => st.phase === 'working' && n !== agentName);
+    if (stillWorking.length === 1) {
+        // Only 1 left, send them back to their desk
+        const [name, st] = stillWorking[0];
+        if (st.meetingSeat !== null) {
+            st.meetingSeat = null;
+            st.phase = 'to-desk';
+            const dsk = document.getElementById(`desk-${st.slug}`);
+            if (dsk) dsk.classList.add('desk-active');
+            moveTo(name, st.deskX, st.deskY, () => {
+                st.phase = 'working';
+            });
+        }
+    }
+
+    // Resume wandering after a short delay
+    const delay = 1000 + Math.random() * 2000;
+    s.walkTimer = setTimeout(() => startWander(agentName), delay);
+
+    updatePanels();
+}
+
+/* ================================================================
+   BULK ACTIONS
+   ================================================================ */
+function triggerAllWorking() {
+    AGENTS.forEach(a => {
+        if (state[a.name].phase !== 'working') {
+            triggerWork(a.name, '/team', 'Tüm ekip toplantısı');
+        }
+    });
+}
+function dismissAllWorking() {
+    AGENTS.forEach(a => {
+        if (state[a.name].phase === 'working' || state[a.name].phase === 'to-desk' || state[a.name].phase === 'to-meeting') {
+            dismissAgent(a.name);
+        }
+    });
+}
+
+/* ================================================================
+   LEFT PANEL — build department list
+   ================================================================ */
+function buildLeftPanel() {
+    const container = document.getElementById('dept-list');
+    container.innerHTML = ''; // Clear previous before building
+    
+    const t = TRANSLATIONS[currentLang];
+    const depts = [
+        { key:'strateji', label: t.depts.strateji, color:'var(--c-strategy)' },
+        { key:'creative', label: t.depts.creative, color:'var(--c-creative)' },
+        { key:'marketing', label: t.depts.marketing, color:'var(--c-marketing)' },
+        { key:'ops', label: t.depts.ops, color:'var(--c-ops)' },
+        { key:'tech', label: t.depts.tech, color:'var(--c-tech)' },
+    ];
+
+    depts.forEach(dept => {
+        const agents = AGENTS.filter(a => a.dept === dept.key);
+        const group = document.createElement('div');
+        group.className = 'dept-group';
+        group.innerHTML = `
+            <div class="dept-header dept-hdr-${dept.key}">
+                <span class="dept-dot" style="background:${dept.color}"></span>
+                ${dept.label}
+                <span class="dept-count">${agents.length}</span>
+            </div>
+        `;
+        const agentsList = document.createElement('div');
+        agentsList.className = 'dept-agents';
+        agents.forEach(a => {
+            const btn = document.createElement('button');
+            btn.className = 'agent-btn';
+            btn.id = `btn-${a.slug}`;
+            const displayName = t.agents[a.slug] || a.name;
+            btn.innerHTML = `<span class="status-dot"></span>${displayName}`;
+            btn.addEventListener('click', () => {
+                if (state[a.name].phase === 'working') {
+                    dismissAgent(a.name);
+                } else {
+                    const mapped = AGENT_COMMANDS[a.slug] || { cmd: '/test', task: 'Manuel tetikleme' };
+                    const taskName = t.tasks[a.slug] || mapped.task;
+                    triggerWork(a.name, mapped.cmd, taskName);
+                }
+            });
+            agentsList.appendChild(btn);
+        });
+        group.appendChild(agentsList);
+        container.appendChild(group);
+
+        // Accordion functionality
+        const header = group.querySelector('.dept-header');
+        header.addEventListener('click', () => {
+            const collapsed = header.classList.toggle('is-collapsed');
+            agentsList.style.display = collapsed ? 'none' : 'flex';
+        });
+    });
+
+    // Search
+    document.getElementById('search-input').addEventListener('input', e => {
+        const q = e.target.value.toLowerCase();
+        AGENTS.forEach(a => {
+            const btn = document.getElementById(`btn-${a.slug}`);
+            if (btn) btn.style.display = a.name.toLowerCase().includes(q) ? '' : 'none';
+        });
+    });
+}
+
+/* ================================================================
+   RIGHT PANEL — update active list & logs
+   ================================================================ */
+function updatePanels() {
+    // Active agents
+    const activeList = document.getElementById('active-list');
+    const noActive = document.getElementById('no-active');
+    const working = AGENTS.filter(a => state[a.name].phase === 'working' || state[a.name].phase === 'to-desk' || state[a.name].phase === 'to-meeting');
+
+    document.getElementById('active-count-r').textContent = working.length;
+    document.getElementById('active-badge').textContent = `${TRANSLATIONS[currentLang].active}: ${working.length}`;
+
+    if (working.length === 0) {
+        if (noActive) noActive.style.display = '';
+        activeList.querySelectorAll('.active-card').forEach(c => c.remove());
+    } else {
+        if (noActive) noActive.style.display = 'none';
+        // Remove cards for agents no longer working
+        activeList.querySelectorAll('.active-card').forEach(card => {
+            const slug = card.dataset.slug;
+            if (!working.find(a => a.slug === slug)) card.remove();
+        });
+        // Add/update cards
+        working.forEach(a => {
+            const s = state[a.name];
+            let card = activeList.querySelector(`.active-card[data-slug="${a.slug}"]`);
+            if (!card) {
+                card = document.createElement('div');
+                card.className = `active-card active-card-${a.dept}`;
+                card.dataset.slug = a.slug;
+                card.style.cursor = 'pointer';
+                const displayName = TRANSLATIONS[currentLang].agents[a.slug] || a.name;
+                card.innerHTML = `
+                    <div class="active-card-sprite" style="background-image:var(--idle-strip);"></div>
+                    <div class="active-card-info">
+                        <div class="active-card-name">${displayName}</div>
+                        <div class="active-card-cmd"></div>
+                    </div>
+                    <div class="active-card-time"></div>
+                `;
+                card.addEventListener('click', () => {
+                    openTerminal(a.name, s.command, s.task);
+                });
+                card.querySelector('.active-card-sprite').style.setProperty('--idle-strip',
+                    `url('animasyonlar/anim/${a.slug}_idle_strip.png')`);
+                card.querySelector('.active-card-sprite').style.backgroundImage =
+                    `url('animasyonlar/anim/${a.slug}_idle_strip.png')`;
+                card.querySelector('.active-card-sprite').style.backgroundSize = '112px 33px';
+                activeList.appendChild(card);
+            }
+            card.querySelector('.active-card-cmd').textContent = s.command;
+            if (s.workStartTime) {
+                const elapsed = Math.floor((Date.now() - s.workStartTime) / 1000);
+                const m = String(Math.floor(elapsed/60)).padStart(2,'0');
+                const sec = String(elapsed%60).padStart(2,'0');
+                card.querySelector('.active-card-time').textContent = `${m}:${sec}`;
+            }
+        });
+    }
+
+    // Update left panel buttons
+    AGENTS.forEach(a => {
+        const btn = document.getElementById(`btn-${a.slug}`);
+        if (btn) {
+            const isW = state[a.name].phase === 'working' || state[a.name].phase === 'to-desk' || state[a.name].phase === 'to-meeting';
+            btn.classList.toggle('is-working', isW);
+        }
+    });
+}
+
+/* Update timers every second */
+setInterval(() => {
+    AGENTS.forEach(a => {
+        const s = state[a.name];
+        if (s.phase === 'working' && s.workStartTime) {
+            const elapsed = Math.floor((Date.now() - s.workStartTime) / 1000);
+            const m = String(Math.floor(elapsed/60)).padStart(2,'0');
+            const sec = String(elapsed%60).padStart(2,'0');
+            const timerEl = document.getElementById(`wl-timer-${s.slug}`);
+            if (timerEl) timerEl.textContent = `${m}:${sec}`;
+        }
+    });
+    updatePanels();
+}, 1000);
+
+/* ================================================================
+   ACTIVITY LOG
+   ================================================================ */
+function flashHddLed() {
+    const led = document.getElementById('hdd-led');
+    if (led) {
+        led.classList.add('flashing');
+        setTimeout(() => led.classList.remove('flashing'), 150);
+    }
+}
+
+function addLogEntry(agentName, command, task) {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const agent = AGENTS.find(a => a.name === agentName);
+
+    activityLog.unshift({ agentName, command, task, timeStr, dept: agent?.dept || 'tech' });
+    if (activityLog.length > 30) activityLog.pop();
+
+    renderLog();
+    flashHddLed();
+}
+
+function renderLog() {
+    const container = document.getElementById('log-list');
+    const noLogs = document.getElementById('no-logs');
+    if (noLogs) noLogs.style.display = activityLog.length ? 'none' : '';
+
+    // Remove all existing log entries safely
+    container.querySelectorAll('.log-entry').forEach(el => el.remove());
+
+    // Rebuild all log entries in activityLog (newest to oldest)
+    activityLog.forEach(entry => {
+        const t = TRANSLATIONS[currentLang];
+        const agentObj = AGENTS.find(a => a.name === entry.agentName);
+        const displayName = agentObj ? (t.agents[agentObj.slug] || entry.agentName) : entry.agentName;
+        const taskName = agentObj ? (t.tasks[agentObj.slug] || entry.task) : entry.task;
+
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.style.cursor = 'pointer';
+        div.innerHTML = `
+            <div class="log-entry-stripe" style="background-color: ${DEPT_COLORS[entry.dept] || 'var(--accent)'}"></div>
+            <div class="log-entry-head">
+                <span class="log-entry-agent">${displayName}</span>
+                <span class="log-entry-time">${entry.timeStr}</span>
+            </div>
+            <div class="log-entry-cmd">${entry.command}</div>
+            <div class="log-entry-task">${taskName || '—'}</div>
+        `;
+        div.addEventListener('click', () => {
+            openTerminal(entry.agentName, entry.command, entry.task);
+        });
+        container.appendChild(div);
+    });
+}
+
+/* ================================================================
+   MCP POLLING
+   ================================================================ */
+function pollMCP() {
+    fetch('/api/status')
+        .then(r => r.json())
+        .then(data => {
+            // Connection OK
+            document.getElementById('conn-dot').classList.remove('disconnected');
+            document.getElementById('conn-label').textContent = TRANSLATIONS[currentLang].connected;
+
+            if (data && data.timestamp) {
+                if (lastTimestamp === 0) {
+                    // First poll: record the timestamp to avoid triggering stale/cached actions
+                    lastTimestamp = data.timestamp;
+                } else if (data.timestamp > lastTimestamp) {
+                    lastTimestamp = data.timestamp;
+                    if (data.active_agent) {
+                        triggerWork(data.active_agent, data.command || '', data.task || '');
+                    }
+                }
+            }
+        })
+        .catch(() => {
+            document.getElementById('conn-dot').classList.add('disconnected');
+            document.getElementById('conn-label').textContent = TRANSLATIONS[currentLang].disconnected;
+        });
+}
+
+/* ================================================================
+   MAP SCALING
+   ================================================================ */
+function fitMap() {
+    const container = document.getElementById('office-container');
+    const map = document.getElementById('office-map');
+    // Scale map horizontally to fit the container width, keep vertical scroll
+    const scale = Math.min(container.clientWidth / MAP_W, 1);
+    map.style.transform = `scale(${scale})`;
+    const heightDifference = MAP_H * (1 - scale);
+    map.style.marginBottom = `-${heightDifference}px`;
+}
+
+/* ================================================================
+   CLOCK
+   ================================================================ */
+function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+        now.toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
+}
+
+/* ================================================================
+   TERMINAL VIEWER & MARKDOWN PARSER
+   ================================================================ */
+function parseMarkdown(text) {
+    if (!text) return '';
+    const lines = text.split('\n');
+    let inList = false;
+    let html = '';
+    
+    lines.forEach(line => {
+        let cleanLine = line.trim();
+        if (cleanLine.startsWith('# ')) {
+            if (inList) { html += '</ul>'; inList = false; }
+            html += `<h1>${line.replace('# ', '')}</h1>`;
+        } else if (cleanLine.startsWith('## ')) {
+            if (inList) { html += '</ul>'; inList = false; }
+            html += `<h2>${line.replace('## ', '')}</h2>`;
+        } else if (cleanLine.startsWith('### ')) {
+            if (inList) { html += '</ul>'; inList = false; }
+            html += `<h3>${line.replace('### ', '')}</h3>`;
+        } else if (cleanLine.startsWith('- ') || cleanLine.startsWith('* ')) {
+            if (!inList) { html += '<ul>'; inList = true; }
+            let content = cleanLine.replace(/^[-*]\s+/, '');
+            if (content.startsWith('[ ]')) {
+                content = `<span style="color:#ef4444">[ ]</span> ` + content.slice(3);
+            } else if (content.startsWith('[x]')) {
+                content = `<span style="color:#10b981">[x]</span> ` + content.slice(3);
+            }
+            html += `<li>${content}</li>`;
+        } else if (cleanLine === '') {
+            if (inList) { html += '</ul>'; inList = false; }
+            html += '<br>';
+        } else {
+            if (inList) { html += '</ul>'; inList = false; }
+            let formatted = line.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#ffb000">$1</strong>');
+            formatted = formatted.replace(/🟢/g, '<span style="color:#10b981">🟢</span>');
+            formatted = formatted.replace(/🟡/g, '<span style="color:#fbbf24">🟡</span>');
+            formatted = formatted.replace(/🔴/g, '<span style="color:#ef4444">🔴</span>');
+            html += `<p>${formatted}</p>`;
+        }
+    });
+    
+    if (inList) html += '</ul>';
+    return html;
+}
+
+let printingTimer = null;
+function openTerminal(agentName, command, task) {
+    const a = AGENTS.find(x => x.name === agentName);
+    const slug = a ? a.slug : '';
+    
+    const modal = document.getElementById('terminal-modal');
+    const titleText = document.getElementById('terminal-title-text');
+    const output = document.getElementById('terminal-output');
+    
+    const t = TRANSLATIONS[currentLang];
+    const displayName = a ? (t.agents[a.slug] || agentName) : agentName;
+    titleText.textContent = `> ${currentLang === 'TR' ? 'SİSTEM ÇIKTISI' : 'SYSTEM OUTPUT'} - ${displayName.toUpperCase()} / ${command.toUpperCase()}`;
+    modal.style.display = 'flex';
+    output.innerHTML = `<p style="color:#39ff14">> ${currentLang === 'TR' ? 'Veritabanına bağlanılıyor...' : 'Connecting to database...'}</p><div class="terminal-cursor"></div>`;
+    
+    fetch(`/api/output?agent=${encodeURIComponent(slug)}&command=${encodeURIComponent(command)}&task=${encodeURIComponent(task)}&lang=${currentLang.toLowerCase()}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.markdown) {
+                const html = parseMarkdown(data.markdown);
+                output.innerHTML = '';
+                
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                const children = Array.from(tempDiv.childNodes);
+                
+                clearInterval(printingTimer);
+                let idx = 0;
+                
+                const cursor = document.createElement('span');
+                cursor.className = 'terminal-cursor';
+                
+                printingTimer = setInterval(() => {
+                    if (idx < children.length) {
+                        const clone = children[idx].cloneNode(true);
+                        output.appendChild(clone);
+                        output.appendChild(cursor);
+                        output.scrollTop = output.scrollHeight;
+                        idx++;
+                    } else {
+                        clearInterval(printingTimer);
+                        if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+                        output.appendChild(cursor);
+                    }
+                }, 40);
+            } else {
+                output.innerHTML = '<p style="color:#ef4444">Error: Empty response from server.</p>';
+            }
+        })
+        .catch(err => {
+            output.innerHTML = `<p style="color:#ef4444">Connection Error: ${err.message}</p>`;
+        });
+}
+
+function closeTerminal() {
+    clearInterval(printingTimer);
+    document.getElementById('terminal-modal').style.display = 'none';
+}
+
+// ============ PLAYGROUND MODAL JS ============
+function openPlaygroundModal() {
+    const modal = document.getElementById('playground-modal');
+    modal.style.display = 'flex';
+    
+    // Populate commands dropdown if empty
+    const select = document.getElementById('play-command');
+    if (select.children.length === 0) {
+        select.innerHTML = '<option value="">Yükleniyor...</option>';
+        fetch('/api/commands')
+            .then(r => r.json())
+            .then(data => {
+                select.innerHTML = '';
+                data.forEach(item => {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = item.title;
+                    item.commands.forEach(cmd => {
+                        const opt = document.createElement('option');
+                        opt.value = cmd;
+                        opt.textContent = cmd;
+                        optgroup.appendChild(opt);
+                    });
+                    select.appendChild(optgroup);
+                });
+            })
+            .catch(() => {
+                select.innerHTML = '<option value="">Hata oluştu</option>';
+            });
+    }
+}
+
+function closePlaygroundModal() {
+    document.getElementById('playground-modal').style.display = 'none';
+}
+
+function runPlaygroundWorkflow() {
+    const komut = document.getElementById('play-command').value;
+    const gorev = document.getElementById('play-task').value;
+    const output = document.getElementById('playground-output');
+    const btn = document.getElementById('btn-run-workflow');
+    
+    if (!komut) return;
+    
+    btn.disabled = true;
+    btn.textContent = currentLang === 'TR' ? 'ÜRETİLİYOR...' : 'GENERATING...';
+    output.textContent = currentLang === 'TR' ? 'Workflow kuralları ve referanslar işleniyor...' : 'Processing workflow rules and references...';
+    
+    fetch('/api/workflow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ komut, gorev, lang: currentLang.toLowerCase() })
+    })
+    .then(r => r.json())
+    .then(data => {
+        output.textContent = data.workflow;
+    })
+    .catch(err => {
+        output.textContent = currentLang === 'TR' ? `Hata: ${err.message}` : `Error: ${err.message}`;
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.textContent = currentLang === 'TR' ? 'WORKFLOW ÜRET' : 'GENERATE WORKFLOW';
+    });
+}
+
+function copyPlaygroundOutput() {
+    const output = document.getElementById('playground-output').textContent;
+    navigator.clipboard.writeText(output).then(() => {
+        alert(currentLang === 'TR' ? "Workflow çıktısı panoya kopyalandı!" : "Workflow output copied to clipboard!");
+    });
+}
+
+// ============ SETUP MODAL JS ============
+function openSetupModal() {
+    document.getElementById('setup-modal').style.display = 'flex';
+    
+    // Fetch configs
+    fetch('/api/config')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('code-antigravity').textContent = JSON.stringify(data.antigravity, null, 2);
+            document.getElementById('code-cursor').textContent = JSON.stringify(data.cursor, null, 2);
+            document.getElementById('code-claudedesktop').textContent = JSON.stringify(data.claude_desktop, null, 2);
+            document.getElementById('code-claudecode').textContent = data.claude_code;
+        })
+        .catch(() => {
+            document.querySelectorAll('.setup-tab-content pre code').forEach(el => {
+                el.textContent = "Bağlantı hatası oluştu.";
+            });
+        });
+}
+
+function closeSetupModal() {
+    document.getElementById('setup-modal').style.display = 'none';
+}
+
+function switchSetupTab(tabId) {
+    document.querySelectorAll('.setup-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.background = '#0c0e12';
+        btn.style.color = '#a0a6b5';
+        btn.style.borderColor = '#1a1d2e';
+    });
+    
+    const activeBtn = document.getElementById(`tab-${tabId}`);
+    activeBtn.classList.add('active');
+    activeBtn.style.background = '#20222b';
+    activeBtn.style.color = '#fff';
+    activeBtn.style.borderColor = '#484d5c';
+    
+    document.querySelectorAll('.setup-tab-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    document.getElementById(`${tabId}-content`).style.display = 'flex';
+}
+
+function copySetupCode(elementId) {
+    const code = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        alert("Kod panoya kopyalandı!");
+    });
+}
+
+window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        closeTerminal();
+        closePlaygroundModal();
+        closeSetupModal();
+    }
+});
+</script>
+
+<!-- ============ TERMINAL MODAL ============ -->
+<div id="terminal-modal">
+    <div class="terminal-window crt-screen">
+        <div class="crt-glare"></div>
+        <header class="terminal-header">
+            <span class="terminal-title" id="terminal-title-text">> SYSTEM OUTPUT TERMINAL</span>
+            <button class="terminal-close-btn" onclick="closeTerminal()">[ ESC / Kapat ]</button>
+        </header>
+        <div class="terminal-body" id="terminal-output"></div>
+    </div>
+</div>
+
+<!-- ============ PLAYGROUND MODAL ============ -->
+<div id="playground-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 30px; backdrop-filter: blur(4px);">
+    <div class="terminal-window crt-screen" style="max-width: 900px; height: 85vh;">
+        <div class="crt-glare"></div>
+        <header class="terminal-header">
+            <span class="terminal-title">> SYSTEM PLAYGROUND — WORKFLOW TESTER</span>
+            <button class="terminal-close-btn" onclick="closePlaygroundModal()">[ ESC / Kapat ]</button>
+        </header>
+        <div class="terminal-body" style="display: flex; gap: 20px; height: calc(100% - 38px); overflow: hidden; padding: 20px;">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 16px; background: rgba(255,255,255,0.01); border: 3px solid #1f2330; padding: 16px; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.8);">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-family: 'Press Start 2P', monospace; font-size: 7px; color: #ffb000;">[ 1. SELECT COMMAND ]</label>
+                    <select id="play-command" style="background: #0c0e12; border: 3px solid #484d5c; color: #39ff14; font-family: monospace; font-size: 12px; font-weight: bold; padding: 10px; outline: none; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.8);">
+                    </select>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
+                    <label style="font-family: 'Press Start 2P', monospace; font-size: 7px; color: #ffb000;">[ 2. ENTER TASK CONTEXT ]</label>
+                    <textarea id="play-task" placeholder="Müşteri/proje detaylarını girin (ör. Meridian Systems FinTech lansmanı)..." style="background: #0c0e12; border: 3px solid #484d5c; color: #39ff14; font-family: monospace; font-size: 12px; padding: 10px; outline: none; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.8); resize: none; flex: 1;"></textarea>
+                </div>
+                <button onclick="runPlaygroundWorkflow()" style="background: #5b21b6; color: #fff; border: 3px solid #000; font-family: 'Press Start 2P', monospace; font-size: 7px; padding: 12px; cursor: pointer; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.25), 0 4px 0 #000; position: relative;" id="btn-run-workflow">WORKFLOW ÜRET</button>
+            </div>
+            <div style="flex: 1.2; display: flex; flex-direction: column; gap: 12px; background: rgba(255,255,255,0.01); border: 3px solid #1f2330; padding: 16px; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.8); overflow: hidden;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-family: 'Press Start 2P', monospace; font-size: 7px; color: #ffb000;">[ SYSTEM PROMPT OUTPUT ]</span>
+                    <button onclick="copyPlaygroundOutput()" style="background: #1f2330; color: #c8cad0; border: 2px solid #484d5c; font-family: monospace; font-size: 11px; padding: 4px 8px; cursor: pointer;">Kopyala</button>
+                </div>
+                <div id="playground-output" style="flex: 1; overflow-y: auto; background: #050a05; border: 3px solid #484d5c; color: #39ff14; font-family: monospace; font-size: 12px; padding: 12px; white-space: pre-wrap; text-shadow: 0 0 2px #39ff14;">Workflow çıktısı burada görüntülenecektir...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ SETUP MODAL ============ -->
+<div id="setup-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 30px; backdrop-filter: blur(4px);">
+    <div class="terminal-window crt-screen" style="max-width: 900px; height: 85vh;">
+        <div class="crt-glare"></div>
+        <header class="terminal-header">
+            <span class="terminal-title">> SYSTEM SETUP WIZARD — IDE CONFIGS</span>
+            <button class="terminal-close-btn" onclick="closeSetupModal()">[ ESC / Kapat ]</button>
+        </header>
+        <div class="terminal-body" style="display: flex; flex-direction: column; height: calc(100% - 38px); overflow: hidden; padding: 20px;">
+            <div style="display: flex; gap: 8px; border-bottom: 3px solid #484d5c; padding-bottom: 8px;">
+                <button onclick="switchSetupTab('setup-antigravity')" class="setup-tab-btn active" id="tab-setup-antigravity" style="background:#20222b; color:#fff; border:3px solid #484d5c; font-family:'Press Start 2P', monospace; font-size:7px; padding:8px 12px; cursor:pointer;">Antigravity</button>
+                <button onclick="switchSetupTab('setup-cursor')" class="setup-tab-btn" id="tab-setup-cursor" style="background:#0c0e12; color:#a0a6b5; border:3px solid #1a1d2e; font-family:'Press Start 2P', monospace; font-size:7px; padding:8px 12px; cursor:pointer;">Cursor</button>
+                <button onclick="switchSetupTab('setup-claudedesktop')" class="setup-tab-btn" id="tab-setup-claudedesktop" style="background:#0c0e12; color:#a0a6b5; border:3px solid #1a1d2e; font-family:'Press Start 2P', monospace; font-size:7px; padding:8px 12px; cursor:pointer;">Claude Desktop</button>
+                <button onclick="switchSetupTab('setup-claudecode')" class="setup-tab-btn" id="tab-setup-claudecode" style="background:#0c0e12; color:#a0a6b5; border:3px solid #1a1d2e; font-family:'Press Start 2P', monospace; font-size:7px; padding:8px 12px; cursor:pointer;">Claude Code</button>
+            </div>
+            
+            <div style="flex:1; display:flex; flex-direction:column; gap:12px; margin-top:16px; overflow:hidden;">
+                <!-- Antigravity -->
+                <div id="setup-antigravity-content" class="setup-tab-content" style="display:flex; flex-direction:column; gap:8px; height:100%;">
+                    <p style="color:#a0a6b5; font-size:12px;">Antigravity'de <strong>Manage MCP Servers</strong> raw config dosyasına (`mcp_config.json`) ekleyin:</p>
+                    <div style="flex:1; position:relative; overflow:hidden;">
+                        <pre style="height:100%; margin:0; overflow:auto; background:#0c0e12; border:3px solid #484d5c; padding:12px;"><code id="code-antigravity" style="color:#39ff14; font-family:var(--font-mono); font-size:12px;">Yükleniyor...</code></pre>
+                        <button onclick="copySetupCode('code-antigravity')" style="position:absolute; top:8px; right:8px; background:#20222b; color:#fff; border:2px solid #484d5c; padding:4px 8px; cursor:pointer; font-family:monospace; font-size:11px;">Kopyala</button>
+                    </div>
+                </div>
+                <!-- Cursor -->
+                <div id="setup-cursor-content" class="setup-tab-content" style="display:none; flex-direction:column; gap:8px; height:100%;">
+                    <p style="color:#a0a6b5; font-size:12px;">Cursor global (<code style="color:#ffb000">~/.cursor/mcp.json</code>) veya proje kökünde <code style="color:#ffb000">.cursor/mcp.json</code> dosyasına ekleyin:</p>
+                    <div style="flex:1; position:relative; overflow:hidden;">
+                        <pre style="height:100%; margin:0; overflow:auto; background:#0c0e12; border:3px solid #484d5c; padding:12px;"><code id="code-cursor" style="color:#39ff14; font-family:var(--font-mono); font-size:12px;">Yükleniyor...</code></pre>
+                        <button onclick="copySetupCode('code-cursor')" style="position:absolute; top:8px; right:8px; background:#20222b; color:#fff; border:2px solid #484d5c; padding:4px 8px; cursor:pointer; font-family:monospace; font-size:11px;">Kopyala</button>
+                    </div>
+                </div>
+                <!-- Claude Desktop -->
+                <div id="setup-claudedesktop-content" class="setup-tab-content" style="display:none; flex-direction:column; gap:8px; height:100%;">
+                    <p style="color:#a0a6b5; font-size:12px;">Claude Desktop yapılandırma dosyasına (<code style="color:#ffb000">claude_desktop_config.json</code>) ekleyin:</p>
+                    <div style="flex:1; position:relative; overflow:hidden;">
+                        <pre style="height:100%; margin:0; overflow:auto; background:#0c0e12; border:3px solid #484d5c; padding:12px;"><code id="code-claudedesktop" style="color:#39ff14; font-family:var(--font-mono); font-size:12px;">Yükleniyor...</code></pre>
+                        <button onclick="copySetupCode('code-claudedesktop')" style="position:absolute; top:8px; right:8px; background:#20222b; color:#fff; border:2px solid #484d5c; padding:4px 8px; cursor:pointer; font-family:monospace; font-size:11px;">Kopyala</button>
+                    </div>
+                </div>
+                <!-- Claude Code -->
+                <div id="setup-claudecode-content" class="setup-tab-content" style="display:none; flex-direction:column; gap:8px; height:100%;">
+                    <p style="color:#a0a6b5; font-size:12px;">Claude CLI üzerinde eklemek için terminalinizde çalıştırın:</p>
+                    <div style="flex:1; position:relative; overflow:hidden;">
+                        <pre style="height:100%; margin:0; overflow:auto; background:#0c0e12; border:3px solid #484d5c; padding:12px;"><code id="code-claudecode" style="color:#39ff14; font-family:var(--font-mono); font-size:12px;">Yükleniyor...</code></pre>
+                        <button onclick="copySetupCode('code-claudecode')" style="position:absolute; top:8px; right:8px; background:#20222b; color:#fff; border:2px solid #484d5c; padding:4px 8px; cursor:pointer; font-family:monospace; font-size:11px;">Kopyala</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

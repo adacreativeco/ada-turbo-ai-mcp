@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "ada-turbo": {
+      "command": "python",
+      "args": ["/MUTLAK/YOL/ada-creative-co-mcp/server.py"]
+    }
+  }
+}

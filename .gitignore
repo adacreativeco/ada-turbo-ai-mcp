@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.DS_Store
+
+# Runtime State
+agent_status.json
+
+# Builds
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
