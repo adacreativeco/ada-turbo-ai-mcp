@@ -1338,13 +1338,14 @@ body {
         <input type="search" id="search-input" placeholder="Ajan ara…">
     </div>
     <div class="dept-list" id="dept-list"></div>
-    <div class="panel-actions panel-plate">
-        <button onclick="triggerAllWorking()">Tümünü Çağır</button>
-        <button onclick="dismissAllWorking()">Serbest Bırak</button>
+        <div class="panel-actions panel-plate">
+        <button id="btn-act-callall" onclick="triggerAllWorking()">Tümünü Çağır</button>
+        <button id="btn-act-dismissall" onclick="dismissAllWorking()">Serbest Bırak</button>
     </div>
-    <div class="panel-actions panel-plate" style="border-top: none; padding-top: 0; margin-top: -6px;">
-        <button onclick="openPlaygroundModal()" style="background: #0f172a; color: #38bdf8; border-color: #0284c7; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.05), 0 4px 0 #000;">Playground</button>
-        <button onclick="openSetupModal()" style="background: #0f172a; color: #a855f7; border-color: #7c3aed; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.05), 0 4px 0 #000;">Kurulum</button>
+    <div class="panel-actions panel-plate" style="border-top: none; padding-top: 0; margin-top: -6px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
+        <button id="btn-act-playground" onclick="openPlaygroundModal()" style="background: #0f172a; color: #38bdf8; border-color: #0284c7; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.05), 0 3px 0 #000; padding: 8px 4px; font-size: 6px;">Playground</button>
+        <button id="btn-act-setup" onclick="openSetupModal()" style="background: #0f172a; color: #a855f7; border-color: #7c3aed; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.05), 0 3px 0 #000; padding: 8px 4px; font-size: 6px;">Kurulum</button>
+        <button id="btn-act-model" onclick="openAIEngineModal()" style="background: #0f172a; color: #fbbf24; border-color: #f59e0b; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.05), 0 3px 0 #000; padding: 8px 4px; font-size: 6px;">⚡ Model</button>
     </div>
 </aside>
 
@@ -1359,7 +1360,9 @@ body {
             <span class="sep"></span>
             <span id="active-badge">Aktif: 0</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button onclick="openAIEngineModal()" id="btn-ai-status" style="background: #0f172a; color: #fbbf24; border: 2px solid #f59e0b; padding: 2px 6px; font-family: 'Press Start 2P', monospace; font-size: 7px; cursor: pointer; box-shadow: inset 1px 1px 0 rgba(255,255,255,0.05), 0 2px 0 #000; height: 18px; line-height: 12px;">⚡ AI: DAHİLİ</button>
+            <span class="sep"></span>
             <span id="clock"></span>
             <span class="sep"></span>
             <button onclick="toggleLanguage()" id="lang-btn" style="background: #1e293b; color: #38bdf8; border: 2px solid #475569; padding: 2px 6px; font-family: 'Press Start 2P', monospace; font-size: 7px; cursor: pointer; box-shadow: inset 1px 1px 0 rgba(255,255,255,0.05), 0 2px 0 #000; margin: 0; outline: none; height: 18px; line-height: 12px;">TR</button>
@@ -1752,29 +1755,50 @@ const TRANSLATIONS = {
         dismiss_all: "Serbest Bırak",
         playground: "Playground",
         setup: "Kurulum",
+        ai_engine: "⚡ Model",
+        ai_badge_builtin: "⚡ AI: DAHİLİ",
+        ai_badge_gemini: "⚡ AI: GEMINI",
+        ai_badge_openai: "⚡ AI: OPENAI",
+        ai_badge_anthropic: "⚡ AI: CLAUDE",
         connected: "Bağlı",
+        connected_sse: "Bağlı (SSE)",
         disconnected: "Bağlantı Yok",
         active: "Aktif",
         active_agents: "Aktif Ajanlar",
         activity_log: "Aktivite Günlüğü",
         no_active_agents: "Çalışan ajan yok",
         no_activity: "Henüz aktivite yok",
-        terminal_title: "> SYSTEM OUTPUT TERMINAL",
-        playground_title: "> SYSTEM PLAYGROUND — WORKFLOW TESTER",
-        select_command: "[ 1. SELECT COMMAND ]",
-        enter_task: "[ 2. ENTER TASK CONTEXT ]",
+        terminal_title: "> SİSTEM ÇIKTISI TERMINALI",
+        playground_title: "> SİSTEM PLAYGROUND — WORKFLOW & AI TESTER",
+        select_command: "[ 1. KOMUT SEÇİN ]",
+        enter_task: "[ 2. GÖREV BAĞLAMI GİRİN ]",
         generate_workflow: "WORKFLOW ÜRET",
         generating: "ÜRETİLİYOR...",
+        run_live_ai: "⚡ CANLI AI ÇALIŞTIR",
+        live_ai_generating: "AI ÇALIŞIYOR...",
+        live_terminal_ai: "⚡ AI ile Canlı Üret",
         copy: "Kopyala",
         copied: "Workflow çıktısı panoya kopyalandı!",
         copied_code: "Kod panoya kopyalandı!",
         loading: "Yükleniyor...",
         meeting_room: "Toplantı Odası",
-        setup_title: "> SYSTEM SETUP WIZARD — IDE CONFIGS",
+        close_modal: "[ ESC / Kapat ]",
+        playground_output_placeholder: "Workflow çıktısı burada görüntülenecektir...",
+        setup_title: "> SİSTEM KURULUM SİHİRBAZI — IDE AYARLARI",
         setup_desc_antigravity: "Antigravity'de <strong>Manage MCP Servers</strong> raw config dosyasına (`mcp_config.json`) ekleyin:",
         setup_desc_cursor: "Cursor global veya proje kökünde `.cursor/mcp.json` dosyasına ekleyin:",
         setup_desc_claudedesktop: "Claude Desktop yapılandırma dosyasına ekleyin:",
         setup_desc_claudecode: "Claude CLI üzerinde eklemek için terminalinizde çalıştırın:",
+        ai_modal_title: "> AI ENGINE & MODEL AYARLARI",
+        ai_desc: "Web arayüzünde ajanların görevlerini canlı LLM modelleriyle çalıştırmak için sağlayıcınızı seçin. API anahtarlarınız yalnızca tarayıcınızın yerel hafızasında (localStorage) saklanır.",
+        ai_tab_builtin: "🟢 Dahili Şablon (Offline)",
+        ai_tab_gemini: "✨ Google Gemini",
+        ai_tab_openai: "🧠 OpenAI",
+        ai_tab_anthropic: "⚡ Anthropic Claude",
+        ai_info_builtin: "✔ <strong>Dahili Yüksek Kaliteli Şablon Motoru:</strong> Sıfır API anahtarı veya internet bağlantısı gerektirmez. ADA Turbo'nun yerleşik profesyonel iş akışı ve çıktı şablonlarını kullanır.",
+        ai_presets_label: "[ HIZLI SEÇİM PRESETLERİ ]",
+        save_ai: "KAYDET & AKTİFLEŞTİR",
+        saved_ai: "Ayarlar başarıyla kaydedildi!",
         depts: {
             strateji: 'Strateji & Marka',
             creative: 'Yaratıcı Ekip',
@@ -1847,35 +1871,56 @@ const TRANSLATIONS = {
         dismiss_all: "Dismiss All",
         playground: "Playground",
         setup: "Setup",
+        ai_engine: "⚡ Model",
+        ai_badge_builtin: "⚡ AI: BUILTIN",
+        ai_badge_gemini: "⚡ AI: GEMINI",
+        ai_badge_openai: "⚡ AI: OPENAI",
+        ai_badge_anthropic: "⚡ AI: CLAUDE",
         connected: "Connected",
-        disconnected: "No Connection",
+        connected_sse: "Connected (SSE)",
+        disconnected: "Disconnected",
         active: "Active",
         active_agents: "Active Agents",
         activity_log: "Activity Log",
-        no_active_agents: "No active agents",
+        no_active_agents: "No working agents",
         no_activity: "No activity yet",
         terminal_title: "> SYSTEM OUTPUT TERMINAL",
-        playground_title: "> SYSTEM PLAYGROUND — WORKFLOW TESTER",
+        playground_title: "> SYSTEM PLAYGROUND — WORKFLOW & AI TESTER",
         select_command: "[ 1. SELECT COMMAND ]",
         enter_task: "[ 2. ENTER TASK CONTEXT ]",
         generate_workflow: "GENERATE WORKFLOW",
         generating: "GENERATING...",
+        run_live_ai: "⚡ RUN WITH LIVE AI",
+        live_ai_generating: "AI RUNNING...",
+        live_terminal_ai: "⚡ Live AI Generate",
         copy: "Copy",
         copied: "Workflow output copied to clipboard!",
         copied_code: "Code copied to clipboard!",
         loading: "Loading...",
         meeting_room: "Meeting Room",
+        close_modal: "[ ESC / Close ]",
+        playground_output_placeholder: "Workflow output will be displayed here...",
         setup_title: "> SYSTEM SETUP WIZARD — IDE CONFIGS",
-        setup_desc_antigravity: "Add to raw config file (`mcp_config.json`) in Antigravity's **Manage MCP Servers**:",
-        setup_desc_cursor: "Add to global `~/.cursor/mcp.json` or project-root `.cursor/mcp.json`:",
+        setup_desc_antigravity: "Add to Antigravity <strong>Manage MCP Servers</strong> raw config (`mcp_config.json`):",
+        setup_desc_cursor: "Add to Cursor global or project root `.cursor/mcp.json`:",
         setup_desc_claudedesktop: "Add to Claude Desktop configuration file:",
         setup_desc_claudecode: "Run in your terminal to add via Claude CLI:",
+        ai_modal_title: "> AI ENGINE & MODEL CONFIGURATION",
+        ai_desc: "Choose your LLM provider to execute agent workflows live in the web visualizer. API keys are stored safely only in your browser (localStorage).",
+        ai_tab_builtin: "🟢 Builtin Template (Offline)",
+        ai_tab_gemini: "✨ Google Gemini",
+        ai_tab_openai: "🧠 OpenAI",
+        ai_tab_anthropic: "⚡ Anthropic Claude",
+        ai_info_builtin: "✔ <strong>Built-in High Quality Template Engine:</strong> Requires zero API key or internet connection. Uses ADA Turbo's built-in agency templates.",
+        ai_presets_label: "[ QUICK MODEL PRESETS ]",
+        save_ai: "SAVE & ACTIVATE",
+        saved_ai: "Settings successfully saved!",
         depts: {
             strateji: 'Strategy & Brand',
             creative: 'Creative Team',
             marketing: 'Marketing & Growth',
             ops: 'Client & Operations',
-            tech: 'Tech & Analytics'
+            tech: 'Analytics & Tech'
         },
         agents: {
             "strateji-direktoru": "Strategy Director",
@@ -1885,18 +1930,18 @@ const TRANSLATIONS = {
             "art-director": "Art Director",
             "yapimci": "Producer",
             "performans-pazarlama": "Performance Marketing",
-            "seo": "SEO",
-            "e-posta-crm": "Email / CRM",
+            "seo": "SEO Specialist",
+            "e-posta-crm": "Email & CRM",
             "growth-hacker": "Growth Hacker",
             "sosyal-medya": "Social Media",
             "icerik-stratejisti": "Content Strategist",
-            "influencer": "Influencer",
-            "medya-planlama": "Media Planning",
+            "influencer": "Influencer Lead",
+            "medya-planlama": "Media Planner",
             "hesap-yoneticisi": "Account Manager",
             "proje-yoneticisi": "Project Manager",
             "musteri-basarisi": "Customer Success",
-            "kriz-iletisimi": "Crisis Communication",
-            "pr": "PR",
+            "kriz-iletisimi": "Crisis Comms",
+            "pr": "PR Specialist",
             "analitik": "Analytics",
             "cfo": "CFO",
             "ceo-urun": "CEO / Product",
@@ -1961,27 +2006,37 @@ function updateUILanguage() {
     }
     
     // Left panel brand
-    document.querySelector('#panel-left h1').textContent = t.brand_title;
-    document.querySelector('#panel-left p').textContent = t.brand_subtitle;
+    if (document.querySelector('#panel-left h1')) document.querySelector('#panel-left h1').textContent = t.brand_title;
+    if (document.querySelector('#panel-left p')) document.querySelector('#panel-left p').textContent = t.brand_subtitle;
     
     // Left panel search placeholder
-    document.getElementById('search-input').placeholder = t.search_placeholder;
+    if (document.getElementById('search-input')) document.getElementById('search-input').placeholder = t.search_placeholder;
     
-    // Actions buttons
-    const actButtons = document.querySelectorAll('#panel-left button');
-    if (actButtons.length >= 4) {
-        actButtons[0].textContent = t.call_all;
-        actButtons[1].textContent = t.dismiss_all;
-        actButtons[2].textContent = t.playground;
-        actButtons[3].textContent = t.setup;
-    }
+    // Action buttons
+    if (document.getElementById('btn-act-callall')) document.getElementById('btn-act-callall').textContent = t.call_all;
+    if (document.getElementById('btn-act-dismissall')) document.getElementById('btn-act-dismissall').textContent = t.dismiss_all;
+    if (document.getElementById('btn-act-playground')) document.getElementById('btn-act-playground').textContent = t.playground;
+    if (document.getElementById('btn-act-setup')) document.getElementById('btn-act-setup').textContent = t.setup;
+    if (document.getElementById('btn-act-model')) document.getElementById('btn-act-model').textContent = t.ai_engine;
     
     // Status Bar
-    document.getElementById('conn-label').textContent = (document.getElementById('conn-dot').classList.contains('disconnected')) ? t.disconnected : t.connected;
+    if (document.getElementById('conn-label')) {
+        const isDis = document.getElementById('conn-dot') && document.getElementById('conn-dot').classList.contains('disconnected');
+        document.getElementById('conn-label').textContent = isDis ? t.disconnected : (sseActive ? t.connected_sse : t.connected);
+    }
+    if (document.getElementById('active-badge')) {
+        const workingCount = AGENTS.filter(a => state[a.name] && (state[a.name].phase === 'working' || state[a.name].phase === 'to-desk' || state[a.name].phase === 'to-meeting')).length;
+        document.getElementById('active-badge').textContent = `${t.active}: ${workingCount}`;
+    }
     
-    // Right panel
-    document.querySelector('#panel-right .rpanel-section:nth-child(1) .rpanel-title span:nth-child(1)').textContent = t.active_agents;
-    document.querySelector('#panel-right .rpanel-section:nth-child(2) .rpanel-title span:nth-child(1)').textContent = t.activity_log;
+    // Right panel titles
+    const rSections = document.querySelectorAll('#panel-right .rpanel-section');
+    if (rSections.length >= 2) {
+        const t1 = rSections[0].querySelector('.rpanel-title span:nth-child(1)');
+        const t2 = rSections[1].querySelector('.rpanel-title span:nth-child(1)');
+        if (t1) t1.textContent = t.active_agents;
+        if (t2) t2.textContent = t.activity_log;
+    }
     
     if (document.getElementById('no-active')) {
         document.getElementById('no-active').textContent = t.no_active_agents;
@@ -1990,28 +2045,58 @@ function updateUILanguage() {
         document.getElementById('no-logs').textContent = t.no_activity;
     }
     
-    // Modals header title text and textareas/dropdowns
-    document.querySelector('#terminal-modal .terminal-title').textContent = t.terminal_title;
-    document.querySelector('#playground-modal .terminal-title').textContent = t.playground_title;
-    document.querySelector('#setup-modal .terminal-title').textContent = t.setup_title;
+    // All Modal Close Buttons
+    document.querySelectorAll('.terminal-close-btn').forEach(btn => {
+        btn.textContent = t.close_modal;
+    });
     
-    // Playground labels and button
+    // Modals header title text and elements
+    if (document.querySelector('#terminal-modal .terminal-title')) document.querySelector('#terminal-modal .terminal-title').textContent = t.terminal_title;
+    if (document.querySelector('#playground-modal .terminal-title')) document.querySelector('#playground-modal .terminal-title').textContent = t.playground_title;
+    if (document.querySelector('#setup-modal .terminal-title')) document.querySelector('#setup-modal .terminal-title').textContent = t.setup_title;
+    if (document.getElementById('ai-modal-title')) document.getElementById('ai-modal-title').textContent = t.ai_modal_title;
+    if (document.getElementById('ai-desc-text')) document.getElementById('ai-desc-text').textContent = t.ai_desc;
+    
+    // Playground elements
     const pgLabels = document.querySelectorAll('#playground-modal label');
     if (pgLabels.length >= 1) pgLabels[0].textContent = t.select_command;
     if (pgLabels.length >= 2) pgLabels[1].textContent = t.enter_task;
-    document.getElementById('btn-run-workflow').textContent = t.generate_workflow;
-    document.getElementById('play-task').placeholder = currentLang === 'TR' ? 
-        'Müşteri/proje detaylarını girin (ör. Meridian Systems FinTech lansmanı)...' : 
-        'Enter client/project details (e.g. Meridian Systems FinTech launch)...';
+    if (document.getElementById('btn-run-workflow')) document.getElementById('btn-run-workflow').textContent = t.generate_workflow;
+    if (document.getElementById('btn-run-live-ai')) document.getElementById('btn-run-live-ai').textContent = t.run_live_ai;
+    if (document.getElementById('btn-terminal-live-ai')) document.getElementById('btn-terminal-live-ai').textContent = t.live_terminal_ai;
+    if (document.getElementById('btn-copy-playground')) document.getElementById('btn-copy-playground').textContent = t.copy;
+    
+    if (document.getElementById('play-task')) {
+        document.getElementById('play-task').placeholder = currentLang === 'TR' ? 
+            'Müşteri/proje detaylarını girin (ör. Meridian Systems FinTech lansmanı)...' : 
+            'Enter client/project details (e.g. Meridian Systems FinTech launch)...';
+    }
+    
+    const pgOut = document.getElementById('playground-output');
+    if (pgOut && (pgOut.textContent.includes('Workflow çıktısı') || pgOut.textContent.includes('Workflow output'))) {
+        pgOut.textContent = t.playground_output_placeholder;
+    }
+    
+    // AI Engine modal tabs & elements
+    if (document.getElementById('tab-ai-builtin')) document.getElementById('tab-ai-builtin').textContent = t.ai_tab_builtin;
+    if (document.getElementById('tab-ai-gemini')) document.getElementById('tab-ai-gemini').textContent = t.ai_tab_gemini;
+    if (document.getElementById('tab-ai-openai')) document.getElementById('tab-ai-openai').textContent = t.ai_tab_openai;
+    if (document.getElementById('tab-ai-anthropic')) document.getElementById('tab-ai-anthropic').textContent = t.ai_tab_anthropic;
+    if (document.getElementById('ai-info-builtin')) document.getElementById('ai-info-builtin').innerHTML = t.ai_info_builtin;
+    if (document.getElementById('ai-presets-label')) document.getElementById('ai-presets-label').textContent = t.ai_presets_label;
+    if (document.getElementById('btn-save-ai')) document.getElementById('btn-save-ai').textContent = t.save_ai;
         
     // Setup tab descriptions
-    document.querySelector('#setup-antigravity-content p').innerHTML = t.setup_desc_antigravity;
-    document.querySelector('#setup-cursor-content p').innerHTML = t.setup_desc_cursor;
-    document.querySelector('#setup-claudedesktop-content p').innerHTML = t.setup_desc_claudedesktop;
-    document.querySelector('#setup-claudecode-content p').innerHTML = t.setup_desc_claudecode;
+    if (document.querySelector('#setup-antigravity-content p')) document.querySelector('#setup-antigravity-content p').innerHTML = t.setup_desc_antigravity;
+    if (document.querySelector('#setup-cursor-content p')) document.querySelector('#setup-cursor-content p').innerHTML = t.setup_desc_cursor;
+    if (document.querySelector('#setup-claudedesktop-content p')) document.querySelector('#setup-claudedesktop-content p').innerHTML = t.setup_desc_claudedesktop;
+    if (document.querySelector('#setup-claudecode-content p')) document.querySelector('#setup-claudecode-content p').innerHTML = t.setup_desc_claudecode;
     
     // Update language button text
-    document.getElementById('lang-btn').textContent = currentLang;
+    if (document.getElementById('lang-btn')) document.getElementById('lang-btn').textContent = currentLang;
+    
+    // Update AI status badge
+    updateAIStatusBadge();
     
     // Rebuild left panel
     buildLeftPanel();
@@ -2034,13 +2119,13 @@ window.addEventListener('DOMContentLoaded', () => {
     createDesks();
     createAgents();
     updateUILanguage();
+    updateAIStatusBadge();
     fitMap();
     window.addEventListener('resize', fitMap);
     startAllWandering();
     updateClock();
     setInterval(updateClock, 1000);
-    pollMCP();
-    pollTimer = setInterval(pollMCP, POLL_INTERVAL);
+    initSSE();
 });
 
 /* ================================================================
@@ -2849,6 +2934,9 @@ let printingTimer = null;
 function openTerminal(agentName, command, task) {
     const a = AGENTS.find(x => x.name === agentName);
     const slug = a ? a.slug : '';
+    activeTerminalContext = { agentName, command, task, slug };
+    const liveBtn = document.getElementById('btn-terminal-live-ai');
+    if (liveBtn) liveBtn.style.display = 'block';
     
     const modal = document.getElementById('terminal-modal');
     const titleText = document.getElementById('terminal-title-text');
@@ -2909,10 +2997,25 @@ function openPlaygroundModal() {
     const modal = document.getElementById('playground-modal');
     modal.style.display = 'flex';
     
+    const t = TRANSLATIONS[currentLang];
+    if (document.querySelector('#playground-modal .terminal-title')) document.querySelector('#playground-modal .terminal-title').textContent = t.playground_title;
+    if (document.getElementById('btn-run-workflow')) document.getElementById('btn-run-workflow').textContent = t.generate_workflow;
+    if (document.getElementById('btn-run-live-ai')) document.getElementById('btn-run-live-ai').textContent = t.run_live_ai;
+    if (document.getElementById('btn-copy-playground')) document.getElementById('btn-copy-playground').textContent = t.copy;
+    
+    const pgLabels = document.querySelectorAll('#playground-modal label');
+    if (pgLabels.length >= 1) pgLabels[0].textContent = t.select_command;
+    if (pgLabels.length >= 2) pgLabels[1].textContent = t.enter_task;
+    if (document.getElementById('play-task')) {
+        document.getElementById('play-task').placeholder = currentLang === 'TR' ? 
+            'Müşteri/proje detaylarını girin (ör. Meridian Systems FinTech lansmanı)...' : 
+            'Enter client/project details (e.g. Meridian Systems FinTech launch)...';
+    }
+    
     // Populate commands dropdown if empty
     const select = document.getElementById('play-command');
     if (select.children.length === 0) {
-        select.innerHTML = '<option value="">Yükleniyor...</option>';
+        select.innerHTML = '<option value="">' + t.loading + '</option>';
         fetch('/api/commands')
             .then(r => r.json())
             .then(data => {
@@ -2930,7 +3033,7 @@ function openPlaygroundModal() {
                 });
             })
             .catch(() => {
-                select.innerHTML = '<option value="">Hata oluştu</option>';
+                select.innerHTML = '<option value="">Hata / Error</option>';
             });
     }
 }
@@ -3032,17 +3135,333 @@ window.addEventListener('keydown', e => {
         closeTerminal();
         closePlaygroundModal();
         closeSetupModal();
+        closeAIEngineModal();
     }
 });
+
+/* ================================================================
+   SERVER-SENT EVENTS (SSE) & REAL-TIME DISPATCH
+   ================================================================ */
+let sseSource = null;
+let sseActive = false;
+
+function initSSE() {
+    if (window.EventSource) {
+        if (sseSource) {
+            sseSource.close();
+        }
+        sseSource = new EventSource('/api/events');
+        
+        sseSource.onopen = () => {
+            sseActive = true;
+            document.getElementById('conn-dot').classList.remove('disconnected');
+            document.getElementById('conn-label').textContent = TRANSLATIONS[currentLang].connected + ' (SSE)';
+        };
+        
+        sseSource.onmessage = (e) => {
+            try {
+                const data = JSON.parse(e.data);
+                if (data.type === 'agent_action' && data.agent) {
+                    // Instant 0ms latency agent dispatch
+                    triggerWork(data.agent, data.command || '', data.task || '');
+                }
+            } catch (err) {
+                // Ignore parse errors on keepalive
+            }
+        };
+        
+        sseSource.onerror = () => {
+            sseActive = false;
+            document.getElementById('conn-dot').classList.add('disconnected');
+            document.getElementById('conn-label').textContent = TRANSLATIONS[currentLang].disconnected;
+            // Retry status fallback
+            pollMCP();
+        };
+    } else {
+        // Fallback to polling
+        pollMCP();
+        setInterval(pollMCP, POLL_INTERVAL);
+    }
+}
+
+/* ================================================================
+   AI ENGINE CONFIGURATION & LOCALSTORAGE MANAGEMENT
+   ================================================================ */
+const AI_PRESETS = {
+    gemini: ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'],
+    openai: ['gpt-4o-mini', 'gpt-4o', 'o3-mini'],
+    anthropic: ['claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022']
+};
+
+let currentAIProvider = 'builtin';
+
+function getAIConfig() {
+    return {
+        provider: localStorage.getItem('ada_ai_provider') || 'builtin',
+        apiKey: localStorage.getItem('ada_ai_key') || '',
+        model: localStorage.getItem('ada_ai_model') || ''
+    };
+}
+
+function updateAIStatusBadge() {
+    const conf = getAIConfig();
+    const btn = document.getElementById('btn-ai-status');
+    if (!btn) return;
+    const t = TRANSLATIONS[currentLang];
+    
+    if (conf.provider === 'builtin' || !conf.apiKey) {
+        btn.textContent = t.ai_badge_builtin;
+        btn.style.color = '#fbbf24';
+        btn.style.borderColor = '#f59e0b';
+    } else if (conf.provider === 'gemini') {
+        btn.textContent = t.ai_badge_gemini;
+        btn.style.color = '#38bdf8';
+        btn.style.borderColor = '#0284c7';
+    } else if (conf.provider === 'openai') {
+        btn.textContent = t.ai_badge_openai;
+        btn.style.color = '#34d399';
+        btn.style.borderColor = '#10b981';
+    } else if (conf.provider === 'anthropic') {
+        btn.textContent = t.ai_badge_anthropic;
+        btn.style.color = '#c084fc';
+        btn.style.borderColor = '#9333ea';
+    }
+}
+
+function openAIEngineModal() {
+    const modal = document.getElementById('ai-engine-modal');
+    modal.style.display = 'flex';
+    
+    const conf = getAIConfig();
+    switchAIProviderTab(conf.provider || 'builtin');
+    
+    document.getElementById('ai-api-key').value = conf.apiKey;
+    document.getElementById('ai-model-name').value = conf.model;
+    document.getElementById('ai-test-status').textContent = '';
+    
+    const t = TRANSLATIONS[currentLang];
+    if (document.getElementById('ai-modal-title')) document.getElementById('ai-modal-title').textContent = t.ai_modal_title;
+    if (document.getElementById('ai-desc-text')) document.getElementById('ai-desc-text').textContent = t.ai_desc;
+    if (document.getElementById('tab-ai-builtin')) document.getElementById('tab-ai-builtin').textContent = t.ai_tab_builtin;
+    if (document.getElementById('tab-ai-gemini')) document.getElementById('tab-ai-gemini').textContent = t.ai_tab_gemini;
+    if (document.getElementById('tab-ai-openai')) document.getElementById('tab-ai-openai').textContent = t.ai_tab_openai;
+    if (document.getElementById('tab-ai-anthropic')) document.getElementById('tab-ai-anthropic').textContent = t.ai_tab_anthropic;
+    if (document.getElementById('ai-info-builtin')) document.getElementById('ai-info-builtin').innerHTML = t.ai_info_builtin;
+    if (document.getElementById('ai-presets-label')) document.getElementById('ai-presets-label').textContent = t.ai_presets_label;
+    if (document.getElementById('btn-save-ai')) document.getElementById('btn-save-ai').textContent = t.save_ai;
+}
+
+function closeAIEngineModal() {
+    document.getElementById('ai-engine-modal').style.display = 'none';
+}
+
+function switchAIProviderTab(provider) {
+    currentAIProvider = provider;
+    const t = TRANSLATIONS[currentLang];
+    
+    document.querySelectorAll('.ai-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.background = '#0c0e12';
+        btn.style.color = '#a0a6b5';
+        btn.style.borderColor = '#1a1d2e';
+    });
+    
+    const activeBtn = document.getElementById(`tab-ai-${provider}`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.style.background = '#20222b';
+        activeBtn.style.color = '#fff';
+        activeBtn.style.borderColor = '#484d5c';
+    }
+    
+    const infoBuiltin = document.getElementById('ai-info-builtin');
+    const keyCont = document.getElementById('ai-key-container');
+    const modelCont = document.getElementById('ai-model-container');
+    const presetsCont = document.getElementById('model-presets');
+    
+    if (document.getElementById('ai-presets-label')) {
+        document.getElementById('ai-presets-label').textContent = t.ai_presets_label;
+    }
+    
+    if (provider === 'builtin') {
+        infoBuiltin.style.display = 'block';
+        infoBuiltin.innerHTML = t.ai_info_builtin;
+        keyCont.style.display = 'none';
+        modelCont.style.display = 'none';
+    } else {
+        infoBuiltin.style.display = 'none';
+        keyCont.style.display = 'flex';
+        modelCont.style.display = 'flex';
+        
+        // Render preset badges
+        presetsCont.innerHTML = '';
+        const presets = AI_PRESETS[provider] || [];
+        presets.forEach(preset => {
+            const badge = document.createElement('button');
+            badge.style.cssText = 'background: #1f2330; color: #38bdf8; border: 1.5px solid #484d5c; font-family: monospace; font-size: 11px; padding: 4px 8px; cursor: pointer; border-radius: 2px;';
+            badge.textContent = preset;
+            badge.onclick = () => {
+                document.getElementById('ai-model-name').value = preset;
+            };
+            presetsCont.appendChild(badge);
+        });
+        
+        // Default model name if empty
+        const modelInput = document.getElementById('ai-model-name');
+        if (!modelInput.value && presets.length > 0) {
+            modelInput.value = presets[0];
+        }
+    }
+}
+
+function toggleKeyVisibility() {
+    const input = document.getElementById('ai-api-key');
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function saveAndApplyAISettings() {
+    const key = document.getElementById('ai-api-key').value.trim();
+    const model = document.getElementById('ai-model-name').value.trim();
+    
+    localStorage.setItem('ada_ai_provider', currentAIProvider);
+    localStorage.setItem('ada_ai_key', key);
+    localStorage.setItem('ada_ai_model', model);
+    
+    const statusEl = document.getElementById('ai-test-status');
+    statusEl.style.color = '#39ff14';
+    statusEl.textContent = TRANSLATIONS[currentLang].saved_ai;
+    
+    updateAIStatusBadge();
+    
+    setTimeout(() => {
+        closeAIEngineModal();
+    }, 800);
+}
+
+/* ================================================================
+   LIVE AI PLAYGROUND & TERMINAL GENERATION
+   ================================================================ */
+let activeTerminalContext = null;
+
+function runPlaygroundLiveAI() {
+    const komut = document.getElementById('play-command').value;
+    const gorev = document.getElementById('play-task').value;
+    const output = document.getElementById('playground-output');
+    const btn = document.getElementById('btn-run-live-ai');
+    
+    if (!komut) return;
+    
+    const conf = getAIConfig();
+    btn.disabled = true;
+    btn.textContent = TRANSLATIONS[currentLang].live_ai_generating;
+    output.textContent = currentLang === 'TR' ? '> Canlı AI motoruna bağlanılıyor (' + conf.provider.toUpperCase() + ')...' : '> Connecting to live AI engine (' + conf.provider.toUpperCase() + ')...';
+    
+    fetch('/api/llm-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            provider: conf.provider,
+            apiKey: conf.apiKey,
+            model: conf.model,
+            komut: komut,
+            gorev: gorev,
+            lang: currentLang.toLowerCase()
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            output.innerHTML = `<span style="color:#ef4444">HATA: ${data.error}</span>`;
+        } else {
+            output.textContent = data.output;
+        }
+    })
+    .catch(err => {
+        output.innerHTML = `<span style="color:#ef4444">Bağlantı Hatası: ${err.message}</span>`;
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.textContent = TRANSLATIONS[currentLang].run_live_ai;
+    });
+}
+
+function runTerminalLiveAI() {
+    if (!activeTerminalContext) return;
+    
+    const { agentName, command, task, slug } = activeTerminalContext;
+    const output = document.getElementById('terminal-output');
+    const btn = document.getElementById('btn-terminal-live-ai');
+    const conf = getAIConfig();
+    
+    if (btn) btn.disabled = true;
+    output.innerHTML = `<p style="color:#39ff14">> [CANLI AI] ${conf.provider.toUpperCase()} (${conf.model || 'Dahili'}) modeline bağlanılıyor...</p><div class="terminal-cursor"></div>`;
+    
+    fetch('/api/llm-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            provider: conf.provider,
+            apiKey: conf.apiKey,
+            model: conf.model,
+            agent: agentName,
+            agentSlug: slug,
+            komut: command,
+            gorev: task,
+            lang: currentLang.toLowerCase()
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            output.innerHTML = `<p style="color:#ef4444">AI Üretim Hatası: ${data.error}</p>`;
+        } else {
+            const html = parseMarkdown(data.output);
+            output.innerHTML = '';
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const children = Array.from(tempDiv.childNodes);
+            
+            clearInterval(printingTimer);
+            let idx = 0;
+            const cursor = document.createElement('span');
+            cursor.className = 'terminal-cursor';
+            
+            printingTimer = setInterval(() => {
+                if (idx < children.length) {
+                    const clone = children[idx].cloneNode(true);
+                    output.appendChild(clone);
+                    output.appendChild(cursor);
+                    output.scrollTop = output.scrollHeight;
+                    idx++;
+                } else {
+                    clearInterval(printingTimer);
+                    if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+                    output.appendChild(cursor);
+                }
+            }, 30);
+        }
+    })
+    .catch(err => {
+        output.innerHTML = `<p style="color:#ef4444">Bağlantı Hatası: ${err.message}</p>`;
+    })
+    .finally(() => {
+        if (btn) btn.disabled = false;
+    });
+}
+
 </script>
 
 <!-- ============ TERMINAL MODAL ============ -->
 <div id="terminal-modal">
     <div class="terminal-window crt-screen">
         <div class="crt-glare"></div>
-        <header class="terminal-header">
+        <header class="terminal-header" style="display: flex; justify-content: space-between; align-items: center;">
             <span class="terminal-title" id="terminal-title-text">> SYSTEM OUTPUT TERMINAL</span>
-            <button class="terminal-close-btn" onclick="closeTerminal()">[ ESC / Kapat ]</button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button id="btn-terminal-live-ai" onclick="runTerminalLiveAI()" style="background: #059669; color: #fff; border: 2px solid #34d399; font-family: 'Press Start 2P', monospace; font-size: 7px; padding: 4px 8px; cursor: pointer; display: none;">⚡ AI ile Canlı Çalıştır</button>
+                <button class="terminal-close-btn" onclick="closeTerminal()">[ ESC / Kapat ]</button>
+            </div>
         </header>
         <div class="terminal-body" id="terminal-output"></div>
     </div>
@@ -3067,12 +3486,15 @@ window.addEventListener('keydown', e => {
                     <label style="font-family: 'Press Start 2P', monospace; font-size: 7px; color: #ffb000;">[ 2. ENTER TASK CONTEXT ]</label>
                     <textarea id="play-task" placeholder="Müşteri/proje detaylarını girin (ör. Meridian Systems FinTech lansmanı)..." style="background: #0c0e12; border: 3px solid #484d5c; color: #39ff14; font-family: monospace; font-size: 12px; padding: 10px; outline: none; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.8); resize: none; flex: 1;"></textarea>
                 </div>
-                <button onclick="runPlaygroundWorkflow()" style="background: #5b21b6; color: #fff; border: 3px solid #000; font-family: 'Press Start 2P', monospace; font-size: 7px; padding: 12px; cursor: pointer; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.25), 0 4px 0 #000; position: relative;" id="btn-run-workflow">WORKFLOW ÜRET</button>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="runPlaygroundWorkflow()" style="flex: 1; background: #5b21b6; color: #fff; border: 3px solid #000; font-family: 'Press Start 2P', monospace; font-size: 7px; padding: 12px 6px; cursor: pointer; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.25), 0 4px 0 #000;" id="btn-run-workflow">WORKFLOW ÜRET</button>
+                    <button onclick="runPlaygroundLiveAI()" style="flex: 1.2; background: #059669; color: #fff; border: 3px solid #000; font-family: 'Press Start 2P', monospace; font-size: 7px; padding: 12px 6px; cursor: pointer; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.25), 0 4px 0 #000;" id="btn-run-live-ai">⚡ CANLI AI ÇALIŞTIR</button>
+                </div>
             </div>
             <div style="flex: 1.2; display: flex; flex-direction: column; gap: 12px; background: rgba(255,255,255,0.01); border: 3px solid #1f2330; padding: 16px; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.8); overflow: hidden;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-family: 'Press Start 2P', monospace; font-size: 7px; color: #ffb000;">[ SYSTEM PROMPT OUTPUT ]</span>
-                    <button onclick="copyPlaygroundOutput()" style="background: #1f2330; color: #c8cad0; border: 2px solid #484d5c; font-family: monospace; font-size: 11px; padding: 4px 8px; cursor: pointer;">Kopyala</button>
+                    <button id="btn-copy-playground" onclick="copyPlaygroundOutput()" style="background: #1f2330; color: #c8cad0; border: 2px solid #484d5c; font-family: monospace; font-size: 11px; padding: 4px 8px; cursor: pointer;">Kopyala</button>
                 </div>
                 <div id="playground-output" style="flex: 1; overflow-y: auto; background: #050a05; border: 3px solid #484d5c; color: #39ff14; font-family: monospace; font-size: 12px; padding: 12px; white-space: pre-wrap; text-shadow: 0 0 2px #39ff14;">Workflow çıktısı burada görüntülenecektir...</div>
             </div>
@@ -3129,6 +3551,59 @@ window.addEventListener('keydown', e => {
                         <button onclick="copySetupCode('code-claudecode')" style="position:absolute; top:8px; right:8px; background:#20222b; color:#fff; border:2px solid #484d5c; padding:4px 8px; cursor:pointer; font-family:monospace; font-size:11px;">Kopyala</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ AI ENGINE MODAL ============ -->
+<div id="ai-engine-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 30px; backdrop-filter: blur(4px);">
+    <div class="terminal-window crt-screen" style="max-width: 800px; height: 85vh;">
+        <div class="crt-glare"></div>
+        <header class="terminal-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="terminal-title" id="ai-modal-title">> AI ENGINE & MODEL CONFIGURATION</span>
+            <button class="terminal-close-btn" onclick="closeAIEngineModal()">[ ESC / Kapat ]</button>
+        </header>
+        <div class="terminal-body" style="display: flex; flex-direction: column; height: calc(100% - 38px); overflow-y: auto; padding: 20px; gap: 16px;">
+            <p id="ai-desc-text" style="color: #a0a6b5; font-size: 12px; line-height: 1.5;">Web arayüzünde ajanların görevlerini canlı LLM modelleriyle çalıştırmak için sağlayıcınızı seçin. API anahtarlarınız yalnızca tarayıcınızın yerel hafızasında (localStorage) güvenle tutulur, üçüncü parti sunucularla paylaşılmaz.</p>
+            
+            <!-- Provider selection tabs -->
+            <div style="display: flex; gap: 8px; border-bottom: 3px solid #484d5c; padding-bottom: 8px; flex-wrap: wrap;">
+                <button onclick="switchAIProviderTab('builtin')" class="ai-tab-btn active" id="tab-ai-builtin" style="background:#20222b; color:#fff; border:3px solid #484d5c; font-family:'Press Start 2P', monospace; font-size:7px; padding:8px 12px; cursor:pointer;">🟢 Dahili Şablon (Offline)</button>
+                <button onclick="switchAIProviderTab('gemini')" class="ai-tab-btn" id="tab-ai-gemini" style="background:#0c0e12; color:#a0a6b5; border:3px solid #1a1d2e; font-family:'Press Start 2P', monospace; font-size:7px; padding:8px 12px; cursor:pointer;">✨ Google Gemini</button>
+                <button onclick="switchAIProviderTab('openai')" class="ai-tab-btn" id="tab-ai-openai" style="background:#0c0e12; color:#a0a6b5; border:3px solid #1a1d2e; font-family:'Press Start 2P', monospace; font-size:7px; padding:8px 12px; cursor:pointer;">🧠 OpenAI</button>
+                <button onclick="switchAIProviderTab('anthropic')" class="ai-tab-btn" id="tab-ai-anthropic" style="background:#0c0e12; color:#a0a6b5; border:3px solid #1a1d2e; font-family:'Press Start 2P', monospace; font-size:7px; padding:8px 12px; cursor:pointer;">⚡ Anthropic Claude</button>
+            </div>
+
+            <!-- Provider form contents -->
+            <div id="ai-provider-settings" style="display: flex; flex-direction: column; gap: 14px; background: rgba(255,255,255,0.02); border: 2px solid #1f2330; padding: 16px;">
+                <div id="ai-info-builtin" style="display: block; color: #39ff14; font-family: monospace; font-size: 12px; line-height: 1.6;">
+                    ✔ <strong>Dahili Yüksek Kaliteli Şablon Motoru:</strong> Sıfır API anahtarı veya internet bağlantısı gerektirmez. ADA Turbo'nun yerleşik profesyonel iş akışı ve çıktı şablonlarını kullanır.
+                </div>
+
+                <div id="ai-key-container" style="display: none; flex-direction: column; gap: 6px;">
+                    <label style="font-family: 'Press Start 2P', monospace; font-size: 7px; color: #ffb000;">[ API KEY ]</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="password" id="ai-api-key" placeholder="API Key girin (AI Studio / OpenAI / Anthropic)..." style="flex: 1; background: #0c0e12; border: 3px solid #484d5c; color: #39ff14; font-family: monospace; font-size: 12px; padding: 10px; outline: none; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.8);">
+                        <button onclick="toggleKeyVisibility()" style="background: #1f2330; color: #fff; border: 2px solid #484d5c; padding: 0 12px; font-family: monospace; font-size: 11px; cursor: pointer;" title="Göster / Gizle">👁️</button>
+                    </div>
+                </div>
+
+                <div id="ai-model-container" style="display: none; flex-direction: column; gap: 6px;">
+                    <label style="font-family: 'Press Start 2P', monospace; font-size: 7px; color: #ffb000;">[ MODEL NAME ]</label>
+                    <input type="text" id="ai-model-name" placeholder="Model adı..." style="background: #0c0e12; border: 3px solid #484d5c; color: #39ff14; font-family: monospace; font-size: 12px; padding: 10px; outline: none; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.8);">
+                    
+                    <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                        <span id="ai-presets-label" style="font-family: 'Press Start 2P', monospace; font-size: 6px; color: #a0a6b5;">[ HIZLI SEÇİM PRESETLERİ ]</span>
+                        <div id="model-presets" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save & Test Status -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 12px; border-top: 2px solid #1a1d2e;">
+                <span id="ai-test-status" style="color: #39ff14; font-family: monospace; font-size: 12px;"></span>
+                <button id="btn-save-ai" onclick="saveAndApplyAISettings()" style="background: #059669; color: #fff; border: 3px solid #000; font-family: 'Press Start 2P', monospace; font-size: 7px; padding: 12px 18px; cursor: pointer; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.25), 0 3px 0 #000;">KAYDET & AKTİFLEŞTİR</button>
             </div>
         </div>
     </div>

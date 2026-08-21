@@ -1,11 +1,23 @@
 import unittest
+import threading
+import urllib.request
+import json
+import time
 from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
 sys.path.insert(0, str(Path(__file__).parent.parent.resolve() / "src"))
 
-from workflow_manager import WorkflowManager, COMMAND_MAP, REFERENCE_TITLES
+from workflow_manager import (
+    WorkflowManager,
+    COMMAND_MAP,
+    REFERENCE_TITLES,
+    register_action_listener,
+    unregister_action_listener,
+    log_agent_action
+)
+from web_server import find_free_port, RobustThreadingTCPServer, OfficeHTTPRequestHandler
 
 class TestWorkflowManager(unittest.TestCase):
     def setUp(self):
@@ -73,6 +85,75 @@ class TestWorkflowManager(unittest.TestCase):
         self.assertIn("slug", first_item)
         self.assertIn("title", first_item)
         self.assertIn("commands", first_item)
+
+    def test_action_listener_and_sse_dispatch(self):
+        # SSE / Action Listener Event Tetikleme Testi
+        received_events = []
+        def listener(evt):
+            received_events.append(evt)
+
+        register_action_listener(listener)
+        try:
+            log_agent_action("Test Ajanı", "/test_komut", "Test Görevi")
+            self.assertTrue(len(received_events) > 0)
+            last_event = received_events[-1]
+            self.assertEqual(last_event.get("agent"), "Test Ajanı")
+            self.assertEqual(last_event.get("command"), "/test_komut")
+            self.assertEqual(last_event.get("type"), "agent_action")
+        finally:
+            unregister_action_listener(listener)
+
+    def test_find_free_port(self):
+        # Dinamik port bulucu testi
+        port = find_free_port(8000, max_tries=20)
+        self.assertIsInstance(port, int)
+        self.assertGreaterEqual(port, 8000)
+
+    def test_live_web_server_endpoints(self):
+        # Canlı web sunucusu endpoint testleri
+        test_port = find_free_port(8950, max_tries=50)
+        httpd = RobustThreadingTCPServer(('', test_port), OfficeHTTPRequestHandler)
+        t = threading.Thread(target=httpd.serve_forever, daemon=True)
+        t.start()
+        time.sleep(0.1)
+
+        try:
+            # 1. /api/status GET
+            with urllib.request.urlopen(f"http://localhost:{test_port}/api/status", timeout=5) as res:
+                self.assertEqual(res.status, 200)
+                data = json.loads(res.read().decode('utf-8'))
+                self.assertIn("history", data)
+
+            # 2. /api/commands GET
+            with urllib.request.urlopen(f"http://localhost:{test_port}/api/commands", timeout=5) as res:
+                self.assertEqual(res.status, 200)
+                data = json.loads(res.read().decode('utf-8'))
+                self.assertIsInstance(data, list)
+
+            # 3. /api/llm-generate (Builtin Mode) POST
+            req_data = json.dumps({
+                "provider": "builtin",
+                "komut": "/copy tagline",
+                "gorev": "Test SaaS fintech lansmanı",
+                "lang": "tr"
+            }).encode('utf-8')
+            req = urllib.request.Request(
+                f"http://localhost:{test_port}/api/llm-generate",
+                data=req_data,
+                headers={"Content-Type": "application/json"}
+            )
+            with urllib.request.urlopen(req, timeout=5) as res:
+                self.assertEqual(res.status, 200)
+                data = json.loads(res.read().decode('utf-8'))
+                self.assertIn("output", data)
+                self.assertEqual(data.get("provider"), "builtin")
+
+        finally:
+            try:
+                httpd.shutdown()
+            except:
+                pass
+            httpd.server_close()
 
 
 if __name__ == "__main__":

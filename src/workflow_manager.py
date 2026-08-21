@@ -242,8 +242,20 @@ def translate_to_english(text: str) -> str:
         
     return translated
 
+ACTION_LISTENERS = []
+
+def register_action_listener(callback):
+    """Web sunucusu veya diğer servisler için anlık ajan aksiyonu dinleyicisi kaydeder."""
+    if callback not in ACTION_LISTENERS:
+        ACTION_LISTENERS.append(callback)
+
+def unregister_action_listener(callback):
+    """Dinleyiciyi listeden çıkarır."""
+    if callback in ACTION_LISTENERS:
+        ACTION_LISTENERS.remove(callback)
+
 def log_agent_action(agent: str, komut: str, gorev: str):
-    """Ajanın aktivitesini web arayüzü için log dosyasına kaydeder."""
+    """Ajanın aktivitesini web arayüzü için log dosyasına kaydeder ve dinleyicilere yayınlar."""
     status_file = Path(__file__).parent.parent / "agent_status.json"
     status = {"active_agent": None, "history": []}
     
@@ -272,6 +284,20 @@ def log_agent_action(agent: str, komut: str, gorev: str):
         status_file.write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding="utf-8")
     except:
         pass
+
+    # Anlık SSE ve diğer dinleyicilere bildirim gönder
+    event_payload = {
+        "type": "agent_action",
+        "agent": agent,
+        "command": komut,
+        "task": gorev,
+        "timestamp": timestamp
+    }
+    for listener in list(ACTION_LISTENERS):
+        try:
+            listener(event_payload)
+        except Exception:
+            pass
 
 def get_agent_name(komut: str) -> str:
     """Komutun ilk kelimesine göre ilgili ajanı eşleştirir."""
