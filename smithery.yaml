@@ -1,0 +1,9 @@
+# Smithery configuration for ADA Turbo MCP Server
+# https://smithery.ai/docs/config
+
+startCommand:
+  type: stdio
+  config:
+    command: python
+    args:
+      - server.py
