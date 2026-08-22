@@ -37,9 +37,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/adacreativeco/ada-turbo-ai-mcp"
+Homepage = "https://adacreative.co/vaka-analizleri/ada-turbo-mcp"
 Repository = "https://github.com/adacreativeco/ada-turbo-ai-mcp"
 Documentation = "https://github.com/adacreativeco/ada-turbo-ai-mcp#readme"
+"Case Study" = "https://adacreative.co/vaka-analizleri/ada-turbo-mcp"
 "Bug Tracker" = "https://github.com/adacreativeco/ada-turbo-ai-mcp/issues"
 
 [project.scripts]

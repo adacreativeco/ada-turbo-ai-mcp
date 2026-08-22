@@ -7,6 +7,7 @@
 [![License](https://img.shields.io/badge/License-PolyForm_NC-10b981?style=for-the-badge)](LICENSE)
 [![Smithery](https://img.shields.io/badge/Smithery-Ready-f59e0b?style=for-the-badge)](https://smithery.ai)
 [![GitHub Stars](https://img.shields.io/github/stars/adacreativeco/ada-turbo-ai-mcp?style=for-the-badge&color=ffd700)](https://github.com/adacreativeco/ada-turbo-ai-mcp/stargazers)
+[![Case Study](https://img.shields.io/badge/Case_Study-ADA_Creative_Co.-0ea5e9?style=for-the-badge&logo=safari&logoColor=white)](https://adacreative.co/vaka-analizleri/ada-turbo-mcp)
 
 <br/>
 
