@@ -3,6 +3,7 @@
 <div align="center">
 
 [![MCP](https://img.shields.io/badge/MCP-Model_Context_Protocol-6366f1?style=for-the-badge&logo=anthropic&logoColor=white)](https://modelcontextprotocol.io/)
+[![PyPI](https://img.shields.io/pypi/v/ada-turbo-ai-mcp?style=for-the-badge&color=3775A9&logo=pypi&logoColor=white)](https://pypi.org/project/ada-turbo-ai-mcp/)
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/Lisans-PolyForm_NC-10b981?style=for-the-badge)](LICENSE)
 [![Smithery](https://img.shields.io/badge/Smithery-Hazır-f59e0b?style=for-the-badge)](https://smithery.ai)
